@@ -48,7 +48,7 @@ fn default_version() -> String {
 }
 
 impl Template {
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self {
             name: name.into(),
@@ -85,25 +85,19 @@ impl Template {
         self.kind == TemplateKind::Manual
     }
 
-    #[allow(dead_code)]
-    pub fn with_kind(mut self, kind: TemplateKind) -> Self {
-        self.kind = kind;
-        self
-    }
-
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub fn with_source_path(mut self, path: impl Into<String>) -> Self {
         self.source_path = Some(path.into());
         self
     }
 
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub fn with_directory(mut self, dir: impl Into<String>) -> Self {
         self.directories.push(dir.into());
         self
     }
 
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub fn with_file(
         mut self,
         path: impl Into<String>,
@@ -116,34 +110,6 @@ impl Template {
             required,
             executable: false,
         });
-        self
-    }
-
-    #[allow(dead_code)]
-    pub fn with_executable(
-        mut self,
-        path: impl Into<String>,
-        content: impl Into<String>,
-        required: bool,
-    ) -> Self {
-        self.files.push(TemplateFile {
-            path: path.into(),
-            content: content.into(),
-            required,
-            executable: true,
-        });
-        self
-    }
-
-    #[allow(dead_code)]
-    pub fn with_var(mut self, key: impl Into<String>, default_val: impl Into<String>) -> Self {
-        self.variables.insert(key.into(), default_val.into());
-        self
-    }
-
-    #[allow(dead_code)]
-    pub fn with_output(mut self, output: impl Into<String>) -> Self {
-        self.outputs.push(output.into());
         self
     }
 

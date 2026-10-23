@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_build:
+	cargo build --release
+
+override_dh_auto_test:
+	cargo test --release
+
+override_dh_auto_install:
+	install -Dm755 target/release/seed debian/seed/usr/bin/seed
+	install -Dm644 completions/seed.bash debian/seed/usr/share/bash-completion/completions/seed
+	install -Dm644 completions/_seed debian/seed/usr/share/zsh/vendor-completions/_seed
+	install -Dm644 completions/seed.fish debian/seed/usr/share/fish/vendor_completions.d/seed.fish
+	install -Dm644 packages/debian/seed.1 debian/seed/usr/share/man/man1/seed.1

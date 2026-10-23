@@ -1,3 +1,4 @@
+use std::fs;
 use std::process::Command;
 use tempfile::tempdir;
 
@@ -30,18 +31,14 @@ fn test_cli_list_templates() {
     let output = Command::new(&bin).arg("list").output().unwrap();
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("podcast"));
-    assert!(stdout.contains("book"));
-    assert!(stdout.contains("game"));
-    assert!(stdout.contains("music"));
-    assert!(stdout.contains("presentation"));
-    assert!(stdout.contains("research-paper"));
-    assert!(stdout.contains("newsletter"));
-    assert!(stdout.contains("portfolio"));
-    assert!(stdout.contains("yt-video"));
-    assert!(stdout.contains("cad-maker"));
-    assert!(stdout.contains("3d-blender"));
-    assert!(stdout.contains("rust"));
+    assert!(stdout.contains("3dmodel"));
+    assert!(stdout.contains("cad"));
+    assert!(stdout.contains("logo"));
+    assert!(stdout.contains("video-edit"));
+    assert!(stdout.contains("photo-edit"));
+    assert!(stdout.contains("vector-artwork"));
+    assert!(stdout.contains("webdesign"));
+    assert!(stdout.contains("coding"));
     assert!(stdout.contains("Deliverables:"));
 }
 
@@ -50,48 +47,53 @@ fn test_cli_scaffold_output_related_templates() {
     let bin = seed_bin();
     let tmp = tempdir().unwrap();
 
-    // 1. Test Podcast scaffold
-    let podcast_target = tmp.path().join("my-daily-show");
+    // 1. Test 3D Model scaffold
+    let model_target = tmp.path().join("my-hero-character");
     let status = Command::new(&bin)
-        .args(["new", podcast_target.to_str().unwrap(), "-t", "podcast", "-a", "AudioHost"])
+        .args(["new", model_target.to_str().unwrap(), "-t", "3dmodel", "-a", "Artist", "--client", "GameStudio"])
         .status()
         .unwrap();
     assert!(status.success());
-    assert!(podcast_target.join("show_notes/template.md").exists());
-    assert!(podcast_target.join("episodes/ep01/plan.md").exists());
-    assert!(podcast_target.join("assets/artwork/cover/specs.md").exists());
+    assert!(model_target.join("models/specs.md").exists());
+    assert!(model_target.join("README.md").exists());
+    let readme = fs::read_to_string(model_target.join("README.md")).unwrap();
+    assert!(readme.contains("Task List") && readme.contains("GameStudio"));
 
-    // 2. Test Book / Manuscript scaffold
-    let book_target = tmp.path().join("my-great-novel");
+    // 2. Test CAD scaffold
+    let cad_target = tmp.path().join("robot-arm-joint");
     let status = Command::new(&bin)
-        .args(["new", book_target.to_str().unwrap(), "-t", "book", "-a", "AuthorName"])
+        .args(["new", cad_target.to_str().unwrap(), "-t", "cad", "-a", "Engineer", "--client", "RoboticsCorp"])
         .status()
         .unwrap();
     assert!(status.success());
-    assert!(book_target.join("manuscript/chapters/ch01_the_beginning.md").exists());
-    assert!(book_target.join("planning/outline/book_outline.md").exists());
-    assert!(book_target.join("scripts/build_ebook.sh").exists());
+    assert!(cad_target.join("bom/bill_of_materials.md").exists());
+    assert!(cad_target.join("specs/tolerances.md").exists());
+    let readme = fs::read_to_string(cad_target.join("README.md")).unwrap();
+    assert!(readme.contains("Task List") && readme.contains("RoboticsCorp"));
 
-    // 3. Test Indie Game scaffold
-    let game_target = tmp.path().join("pixel-quest");
+    // 3. Test Logo scaffold
+    let logo_target = tmp.path().join("brand-identity-suite");
     let status = Command::new(&bin)
-        .args(["new", game_target.to_str().unwrap(), "-t", "game", "-a", "GameDev"])
+        .args(["new", logo_target.to_str().unwrap(), "-t", "logo", "-a", "Designer", "--client", "ApexMedia"])
         .status()
         .unwrap();
     assert!(status.success());
-    assert!(game_target.join("design/gdd/game_design_document.md").exists());
-    assert!(game_target.join("design/level_design/level_01_concept.md").exists());
+    assert!(logo_target.join("guidelines/brand_guidelines.md").exists());
+    assert!(logo_target.join("source/color_palettes/palette.md").exists());
+    let readme = fs::read_to_string(logo_target.join("README.md")).unwrap();
+    assert!(readme.contains("ApexMedia") && readme.contains("Task List"));
 
-    // 4. Test Presentation scaffold
-    let pres_target = tmp.path().join("investor-deck");
+    // 4. Test Video Edit scaffold
+    let video_target = tmp.path().join("product-commercial");
     let status = Command::new(&bin)
-        .args(["new", pres_target.to_str().unwrap(), "-t", "presentation", "-a", "Speaker"])
+        .args(["new", video_target.to_str().unwrap(), "-t", "video-edit", "-a", "Editor", "--client", "TechCo"])
         .status()
         .unwrap();
     assert!(status.success());
-    assert!(pres_target.join("slides/presentation.md").exists());
-    assert!(pres_target.join("handouts/summary.md").exists());
-    assert!(pres_target.join("scripts/export_slides.sh").exists());
+    assert!(video_target.join("projects/timeline/project_notes.md").exists());
+    assert!(video_target.join("transcripts/script_and_cue.md").exists());
+    let readme = fs::read_to_string(video_target.join("README.md")).unwrap();
+    assert!(readme.contains("TechCo") && readme.contains("Task List"));
 }
 
 #[test]
@@ -99,64 +101,66 @@ fn test_cli_scaffold_regular_templates() {
     let bin = seed_bin();
     let tmp = tempdir().unwrap();
 
-    // 1. Test C++ scaffold
-    let cpp_target = tmp.path().join("my-cpp-service");
+    // 1. Test Photo Edit scaffold
+    let photo_target = tmp.path().join("studio-portrait");
     let status = Command::new(&bin)
-        .args(["new", cpp_target.to_str().unwrap(), "-t", "cpp", "-a", "Tester"])
+        .args(["new", photo_target.to_str().unwrap(), "-t", "photo-edit", "-a", "Photographer", "--client", "FashionMag"])
         .status()
         .unwrap();
     assert!(status.success());
-    assert!(cpp_target.join("CMakeLists.txt").exists());
-    assert!(cpp_target.join("src/main.cpp").exists());
-    assert!(cpp_target.join("include/my-cpp-service/core.hpp").exists());
+    assert!(photo_target.join("metadata/shot_list.md").exists());
+    let readme = fs::read_to_string(photo_target.join("README.md")).unwrap();
+    assert!(readme.contains("FashionMag") && readme.contains("Task List"));
 
-    // 2. Test React scaffold
-    let react_target = tmp.path().join("my-react-ui");
+    // 2. Test Vector Artwork scaffold
+    let vector_target = tmp.path().join("icon-system");
     let status = Command::new(&bin)
-        .args(["new", react_target.to_str().unwrap(), "-t", "react", "-a", "Tester"])
+        .args(["new", vector_target.to_str().unwrap(), "-t", "vector-artwork", "-a", "Illustrator", "--client", "AppCompany"])
         .status()
         .unwrap();
     assert!(status.success());
-    assert!(react_target.join("package.json").exists());
-    assert!(react_target.join("vite.config.ts").exists());
-    assert!(react_target.join("src/App.tsx").exists());
+    assert!(vector_target.join("source/components/design_tokens.md").exists());
+    let readme = fs::read_to_string(vector_target.join("README.md")).unwrap();
+    assert!(readme.contains("AppCompany") && readme.contains("Task List"));
 
-    // 3. Test FastAPI scaffold
-    let api_target = tmp.path().join("my-fastapi-service");
+    // 3. Test Web Design scaffold
+    let web_target = tmp.path().join("saas-landing-page");
     let status = Command::new(&bin)
-        .args(["new", api_target.to_str().unwrap(), "-t", "fastapi", "-a", "Tester"])
+        .args(["new", web_target.to_str().unwrap(), "-t", "webdesign", "-a", "UIUX", "--client", "SaaSStartup"])
         .status()
         .unwrap();
     assert!(status.success());
-    assert!(api_target.join("app/main.py").exists());
-    assert!(api_target.join("app/api/routes/items.py").exists());
-    assert!(api_target.join("requirements.txt").exists());
+    assert!(web_target.join("prototype/src/index.html").exists());
+    assert!(web_target.join("prototype/src/styles.css").exists());
+    let readme = fs::read_to_string(web_target.join("README.md")).unwrap();
+    assert!(readme.contains("SaaSStartup") && readme.contains("Task List"));
 
-    // 4. Test Bash CLI scaffold
-    let bash_target = tmp.path().join("my-bash-tool");
+    // 4. Test Coding scaffold
+    let code_target = tmp.path().join("core-backend-api");
     let status = Command::new(&bin)
-        .args(["new", bash_target.to_str().unwrap(), "-t", "bash", "-a", "Tester"])
+        .args(["new", code_target.to_str().unwrap(), "-t", "coding", "-a", "Developer", "--client", "CloudCorp"])
         .status()
         .unwrap();
     assert!(status.success());
-    assert!(bash_target.join("bin/my-bash-tool").exists());
-    assert!(bash_target.join("lib/utils.sh").exists());
-    assert!(bash_target.join("Makefile").exists());
+    assert!(code_target.join("docs/architecture/overview.md").exists());
+    assert!(code_target.join("scripts/build.sh").exists());
+    let readme = fs::read_to_string(code_target.join("README.md")).unwrap();
+    assert!(readme.contains("CloudCorp") && readme.contains("Task List"));
 }
 
 #[test]
 fn test_cli_scaffold_and_maintain_workflow() {
     let bin = seed_bin();
     let tmp = tempdir().unwrap();
-    let target = tmp.path().join("test-go-app");
+    let target = tmp.path().join("test-coding-app");
 
-    // 1. Create Go project
+    // 1. Create coding project
     let status = Command::new(&bin)
         .args([
             "new",
             target.to_str().unwrap(),
             "--template",
-            "go",
+            "coding",
             "--author",
             "CI Test",
             "--license",
@@ -166,8 +170,9 @@ fn test_cli_scaffold_and_maintain_workflow() {
         .unwrap();
     assert!(status.success());
 
-    assert!(target.join("go.mod").exists());
-    assert!(target.join("cmd/test-go-app/main.go").exists());
+    assert!(target.join("src/main.rs").exists());
+    assert!(target.join("docs/architecture/overview.md").exists());
+    assert!(target.join("scripts/build.sh").exists());
     assert!(target.join("README.md").exists());
     assert!(target.join("LICENSE").exists());
 
@@ -178,7 +183,7 @@ fn test_cli_scaffold_and_maintain_workflow() {
         .unwrap();
     assert!(check.status.success());
     let check_out = String::from_utf8_lossy(&check.stdout);
-    assert!(check_out.contains("Project Profile : go"));
+    assert!(check_out.contains("Project Profile : coding"));
 
     // 3. Tree
     let tree = Command::new(&bin)
@@ -187,8 +192,8 @@ fn test_cli_scaffold_and_maintain_workflow() {
         .unwrap();
     assert!(tree.status.success());
     let tree_out = String::from_utf8_lossy(&tree.stdout);
-    assert!(tree_out.contains("go.mod"));
-    assert!(tree_out.contains("main.go"));
+    assert!(tree_out.contains("main.rs"));
+    assert!(tree_out.contains("build.sh"));
 }
 
 #[test]
@@ -204,9 +209,10 @@ fn test_workspace_init_does_not_create_fake_projects() {
         archive_dir: "archive".into(),
         default_author: "Artist".into(),
         default_license: "MIT".into(),
-        default_template: "yt-video".into(),
+        default_template: "video-edit".into(),
         custom_templates_dir: tmp.path().join("templates").to_string_lossy().to_string(),
         favorite_templates: Vec::new(),
+        pinned_projects: Vec::new(),
         icon_mode: "ascii".into(),
     };
 
@@ -271,17 +277,17 @@ fn test_cli_fav_templates() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("No favorite templates pinned yet"));
 
-    // 2. Pin 'podcast' as favorite
+    // 2. Pin '3dmodel' as favorite
     let output = Command::new(&bin)
         .env("SEED_CONFIG", &config_path)
-        .args(["fav", "podcast"])
+        .args(["fav", "3dmodel"])
         .output()
         .unwrap();
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("Pinned 'podcast' to favorites"));
+    assert!(stdout.contains("Pinned '3dmodel' to favorites"));
 
-    // 3. Check list shows 'podcast' with [FAV]
+    // 3. Check list shows '3dmodel' with [FAV]
     let output = Command::new(&bin)
         .env("SEED_CONFIG", &config_path)
         .arg("list")
@@ -289,7 +295,7 @@ fn test_cli_fav_templates() {
         .unwrap();
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains(seed::icons::fav_badge(true, true)) && stdout.contains("podcast"));
+    assert!(stdout.contains(seed::icons::fav_badge(true, true)) && stdout.contains("3dmodel"));
 
     // 4. Check fav listing
     let output = Command::new(&bin)
@@ -299,18 +305,18 @@ fn test_cli_fav_templates() {
         .unwrap();
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("podcast"));
+    assert!(stdout.contains("3dmodel"));
     assert!(stdout.contains("[FAV]"));
 
-    // 5. Toggle off 'podcast'
+    // 5. Toggle off '3dmodel'
     let output = Command::new(&bin)
         .env("SEED_CONFIG", &config_path)
-        .args(["fav", "podcast"])
+        .args(["fav", "3dmodel"])
         .output()
         .unwrap();
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("Removed 'podcast' from favorites"));
+    assert!(stdout.contains("Removed '3dmodel' from favorites"));
 }
 
 #[test]

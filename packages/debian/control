@@ -1,0 +1,15 @@
+Source: seed
+Section: utils
+Priority: optional
+Maintainer: Jaiganesh <jaigansa@users.noreply.github.com>
+Build-Depends: debhelper-compat (= 13), cargo, rustc
+Standards-Version: 4.6.2
+Homepage: https://github.com/jaigansa/seed
+
+Package: seed
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Modern terminal workspace manager, project scaffolder, and health auditor
+ Seed is a fast, keyboard-first terminal tool for organizing workspace projects,
+ scaffolding creative and software repositories from templates, monitoring
+ project health, and maintaining file hygiene.

@@ -84,29 +84,51 @@ pub fn detect_project_type(root: &Path) -> Option<&'static str> {
         || root.join("invoices").exists()
     {
         Some("client-project")
-    } else if root.join("scripts/script.md").exists()
-        || root.join("assets/footage").exists()
-        || root.join("projects/kdenlive").exists()
-    {
-        Some("yt-video")
-    } else if root.join("scenes").exists()
-        || root.join("models/specs.md").exists()
+    } else if root.join("models/specs.md").exists()
+        || root.join("models/high_poly").exists()
         || root.join("exports/gltf").exists()
+        || root.join("scenes").exists()
     {
-        Some("3d-blender")
-    } else if root.join("cad").exists()
-        || root.join("bom/bill_of_materials.md").exists()
+        Some("3dmodel")
+    } else if root.join("bom/bill_of_materials.md").exists()
+        || root.join("cad/parts").exists()
+        || root.join("cad").exists()
+        || root.join("specs/tolerances.md").exists()
         || root.join("slicer").exists()
     {
-        Some("cad-maker")
-    } else if root.join("branding_guidelines.md").exists()
-        || root.join("source/svg").exists()
+        Some("cad")
+    } else if root.join("guidelines/brand_guidelines.md").exists()
+        || root.join("source/color_palettes").exists()
+        || root.join("concepts/sketches").exists()
     {
-        Some("vector-design")
+        Some("logo")
+    } else if root.join("transcripts/script_and_cue.md").exists()
+        || root.join("projects/timeline").exists()
+        || root.join("footage/raw").exists()
+        || root.join("scripts/script.md").exists()
+        || root.join("assets/footage").exists()
+    {
+        Some("video-edit")
     } else if root.join("metadata/shot_list.md").exists()
+        || root.join("presets/grading_notes.md").exists()
+        || root.join("raw/selected").exists()
         || root.join("edits/gimp_xcf").exists()
     {
-        Some("photo-editing")
+        Some("photo-edit")
+    } else if root.join("source/components/design_tokens.md").exists()
+        || root.join("branding_guidelines.md").exists()
+        || root.join("source/svg").exists()
+    {
+        Some("vector-artwork")
+    } else if root.join("design_system/design_tokens.md").exists()
+        || root.join("prototype/src/index.html").exists()
+        || root.join("wireframes").exists()
+    {
+        Some("webdesign")
+    } else if root.join("docs/architecture/overview.md").exists()
+        || root.join("scripts/build.sh").exists()
+    {
+        Some("coding")
     } else if root.join("shaders").exists() || root.join("src/sketch.js").exists() {
         Some("creative-coding")
     } else if root.join("index.html").exists() {
@@ -118,11 +140,11 @@ pub fn detect_project_type(root: &Path) -> Option<&'static str> {
                 let p = entry.path();
                 if let Some(ext) = p.extension().and_then(|e| e.to_str()) {
                     match ext {
-                        "blend" => return Some("3d-blender"),
-                        "kdenlive" | "mlt" => return Some("yt-video"),
-                        "fcstd" | "scad" | "step" => return Some("cad-maker"),
-                        "svg" => return Some("vector-design"),
-                        "xcf" | "kra" | "ora" => return Some("photo-editing"),
+                        "blend" | "gltf" | "glb" | "fbx" | "obj" => return Some("3dmodel"),
+                        "kdenlive" | "mlt" | "prproj" | "drp" => return Some("video-edit"),
+                        "fcstd" | "scad" | "step" | "3mf" | "stl" => return Some("cad"),
+                        "svg" => return Some("vector-artwork"),
+                        "xcf" | "kra" | "ora" | "cr3" | "nef" | "arw" => return Some("photo-edit"),
                         _ => {}
                     }
                 }

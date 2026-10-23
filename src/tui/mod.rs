@@ -1,6 +1,5 @@
 pub mod ui;
 
-use crate::capture::{capture_directory_as_template, CaptureOptions};
 use crate::config::{load_config, save_config, AppConfig};
 use crate::creator::{create_project, CreateOptions};
 use crate::maintainer::{audit_project, AuditReport};
@@ -31,6 +30,41 @@ pub enum ProjectCategory {
     Archive(String),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ProjectSortMode {
+    #[default]
+    Recent,
+    Alphabetical,
+    Size,
+    Health,
+}
+
+impl ProjectSortMode {
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::Recent => "Recent",
+            Self::Alphabetical => "Name A-Z",
+            Self::Size => "Size",
+            Self::Health => "Health",
+        }
+    }
+
+    pub fn next(&self) -> Self {
+        match self {
+            Self::Recent => Self::Alphabetical,
+            Self::Alphabetical => Self::Size,
+            Self::Size => Self::Health,
+            Self::Health => Self::Recent,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum PendingAction {
+    OpenEditor(PathBuf, String),
+    OpenTerminal(PathBuf),
+}
+
 #[derive(Debug, Clone)]
 pub struct ProjectItem {
     pub name: String,
@@ -41,6 +75,10 @@ pub struct ProjectItem {
     pub total_bytes: u64,
     pub detected_type: String,
     pub preview_files: Vec<String>,
+    pub created_at: Option<std::time::SystemTime>,
+    pub last_modified: std::time::SystemTime,
+    pub health_score: u32,
+    pub git_status: crate::utils::GitRepoStatus,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -110,6 +148,7 @@ pub struct App {
     pub projects_filter_idx: usize, // 0 = All, 1 = Personal, 2 = Clients, 3 = Resources, 4 = Archive
     pub search_query: String,
     pub is_searching: bool,
+    pub sort_mode: ProjectSortMode,
 
     // Robust Modals
     pub show_help_modal: bool,
@@ -118,6 +157,10 @@ pub struct App {
     pub doctor_popup: Option<(String, AuditReport)>,
     pub manual_template_modal: Option<ManualTemplateForm>,
     pub md_editor_modal: Option<MarkdownEditorModal>,
+    pub confirm_discard_md: bool,
+
+    // Pending CLI / Terminal action
+    pub pending_action: Option<PendingAction>,
 
     // Tab 2: Templates Section
     pub templates_view_idx: usize,
@@ -125,6 +168,9 @@ pub struct App {
 
     // Tab 3: Config & Project Paths
     pub config_field_idx: usize,
+
+    // Active Input Field Edit Mode (Enter to activate, Enter/Esc to exit)
+    pub is_input_editing: bool,
 
     // Notifications
     pub status_message: Option<String>,
@@ -166,6 +212,7 @@ impl App {
             projects_filter_idx: 0,
             search_query: String::new(),
             is_searching: false,
+            sort_mode: ProjectSortMode::Recent,
 
             show_help_modal: false,
             confirm_archive: None,
@@ -173,10 +220,13 @@ impl App {
             doctor_popup: None,
             manual_template_modal: None,
             md_editor_modal: None,
+            confirm_discard_md: false,
+            pending_action: None,
 
             templates_view_idx: 0,
             templates_filter_idx: 0,
             config_field_idx: 0,
+            is_input_editing: false,
 
             config,
             templates,
@@ -195,6 +245,35 @@ impl App {
         Ok(app)
     }
 
+    pub fn apply_sorting(&mut self) {
+        let cfg = &self.config;
+        match self.sort_mode {
+            ProjectSortMode::Recent => {
+                self.projects_list
+                    .sort_by_key(|a| (std::cmp::Reverse(cfg.is_pinned_project(&a.name)), std::cmp::Reverse(a.last_modified)));
+            }
+            ProjectSortMode::Alphabetical => {
+                self.projects_list
+                    .sort_by_key(|a| (std::cmp::Reverse(cfg.is_pinned_project(&a.name)), a.name.to_lowercase()));
+            }
+            ProjectSortMode::Size => {
+                self.projects_list
+                    .sort_by_key(|a| (std::cmp::Reverse(cfg.is_pinned_project(&a.name)), std::cmp::Reverse(a.total_bytes)));
+            }
+            ProjectSortMode::Health => {
+                self.projects_list
+                    .sort_by_key(|a| (std::cmp::Reverse(cfg.is_pinned_project(&a.name)), std::cmp::Reverse(a.health_score)));
+            }
+        }
+    }
+
+    pub fn cycle_sort_mode(&mut self) {
+        self.sort_mode = self.sort_mode.next();
+        self.apply_sorting();
+        self.selected_project_idx = 0;
+        self.status_message = Some(format!("Projects sorted by: {}", self.sort_mode.label()));
+    }
+
     pub fn update_destination_path(&mut self) {
         let base = match self.create_category_idx {
             1 => {
@@ -209,6 +288,7 @@ impl App {
 
     pub fn reload_projects(&mut self) {
         self.projects_list = scan_workspace_projects(&self.config);
+        self.apply_sorting();
         let count = self.filtered_projects().len();
         if count == 0 {
             self.selected_project_idx = 0;
@@ -286,6 +366,26 @@ impl App {
                 | KeyCode::Char(' ')
                 | KeyCode::F(1) => {
                     self.show_help_modal = false;
+                }
+                _ => {}
+            }
+            return false;
+        }
+
+        // -0.5. Confirm Discard Markdown Changes Modal
+        if self.confirm_discard_md {
+            match key.code {
+                KeyCode::Char('y') | KeyCode::Char('Y') => {
+                    self.confirm_discard_md = false;
+                    self.md_editor_modal = None;
+                }
+                KeyCode::Char('s') | KeyCode::Char('S') => {
+                    self.execute_save_markdown();
+                    self.confirm_discard_md = false;
+                    self.md_editor_modal = None;
+                }
+                KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+                    self.confirm_discard_md = false;
                 }
                 _ => {}
             }
@@ -376,9 +476,33 @@ impl App {
             return true;
         }
 
-        // If on Tab 1 (New Project), Tab and BackTab navigate containers and fields without jumping tabs
+        // Quick tab switching via Alt+1..=3 anytime (even while editing)
+        if key.modifiers.contains(KeyModifiers::ALT) {
+            match key.code {
+                KeyCode::Char('1') => {
+                    self.is_input_editing = false;
+                    self.current_tab = 0;
+                    self.reload_projects();
+                    return false;
+                }
+                KeyCode::Char('2') => {
+                    self.is_input_editing = false;
+                    self.current_tab = 1;
+                    return false;
+                }
+                KeyCode::Char('3') | KeyCode::Char('4') => {
+                    self.is_input_editing = false;
+                    self.current_tab = 2;
+                    return false;
+                }
+                _ => {}
+            }
+        }
+
+        // If on Tab 1 (New Project), Tab and BackTab navigate form fields and containers
         if self.current_tab == 1 {
             if key.code == KeyCode::Tab {
+                self.is_input_editing = false;
                 if self.create_pane == 0 {
                     self.create_pane = 1;
                     self.create_field_idx = 0;
@@ -388,16 +512,19 @@ impl App {
                     if self.create_field_idx < max_fields {
                         self.create_field_idx += 1;
                     } else {
-                        self.create_pane = 0;
+                        self.create_field_idx = 0;
                     }
                 }
                 return false;
             } else if key.code == KeyCode::BackTab {
+                self.is_input_editing = false;
                 if self.create_pane == 1 {
+                    let is_client = self.create_category_idx == 1;
+                    let max_fields = if is_client { 6 } else { 5 };
                     if self.create_field_idx > 0 {
                         self.create_field_idx -= 1;
                     } else {
-                        self.create_pane = 0;
+                        self.create_field_idx = max_fields;
                     }
                 } else {
                     self.create_pane = 1;
@@ -406,25 +533,28 @@ impl App {
                 }
                 return false;
             }
-        } else if self.current_tab == 3 {
+        } else if self.current_tab == 2 || self.current_tab == 3 {
             if key.code == KeyCode::Tab {
-                if self.config_field_idx < 6 {
+                self.is_input_editing = false;
+                if self.config_field_idx < 7 {
                     self.config_field_idx += 1;
                 } else {
                     self.config_field_idx = 0;
                 }
                 return false;
             } else if key.code == KeyCode::BackTab {
+                self.is_input_editing = false;
                 if self.config_field_idx > 0 {
                     self.config_field_idx -= 1;
                 } else {
-                    self.config_field_idx = 6;
+                    self.config_field_idx = 7;
                 }
                 return false;
             }
         } else if !self.is_editing_text() {
             match key.code {
                 KeyCode::Tab => {
+                    self.is_input_editing = false;
                     self.current_tab = (self.current_tab + 1) % 4;
                     if self.current_tab == 0 {
                         self.reload_projects();
@@ -432,6 +562,7 @@ impl App {
                     return false;
                 }
                 KeyCode::BackTab => {
+                    self.is_input_editing = false;
                     self.current_tab = if self.current_tab == 0 { 3 } else { self.current_tab - 1 };
                     if self.current_tab == 0 {
                         self.reload_projects();
@@ -448,24 +579,23 @@ impl App {
             return false;
         }
 
-        // Major tab switching via '1'..='4' when not typing text
+        // Major tab switching via '1'..='3' when not typing text
         if !self.is_editing_text() {
             match key.code {
                 KeyCode::Char('1') => {
+                    self.is_input_editing = false;
                     self.current_tab = 0;
                     self.reload_projects();
                     return false;
                 }
                 KeyCode::Char('2') => {
+                    self.is_input_editing = false;
                     self.current_tab = 1;
                     return false;
                 }
-                KeyCode::Char('3') => {
+                KeyCode::Char('3') | KeyCode::Char('4') => {
+                    self.is_input_editing = false;
                     self.current_tab = 2;
-                    return false;
-                }
-                KeyCode::Char('4') => {
-                    self.current_tab = 3;
                     return false;
                 }
                 _ => {}
@@ -475,32 +605,22 @@ impl App {
         match self.current_tab {
             0 => self.handle_view_projects_keys(key),
             1 => self.handle_create_keys(key),
-            2 => self.handle_templates_keys(key),
-            3 => self.handle_config_keys(key),
+            2 | 3 => self.handle_config_keys(key),
             _ => false,
         }
     }
 
     pub fn is_editing_text(&self) -> bool {
+        if self.confirm_discard_md {
+            return false;
+        }
         if let Some(ref m) = self.md_editor_modal {
             return m.mode == MarkdownModalMode::Edit;
         }
-        match self.current_tab {
-            0 => self.is_searching,
-            1 => {
-                if self.create_pane == 0 {
-                    return false;
-                }
-                let is_client = self.create_category_idx == 1;
-                if is_client {
-                    self.create_field_idx >= 1 && self.create_field_idx <= 3
-                } else {
-                    self.create_field_idx >= 1 && self.create_field_idx <= 2
-                }
-            }
-            3 => self.config_field_idx == 0 || self.config_field_idx == 1 || self.config_field_idx == 3,
-            _ => false,
+        if self.current_tab == 0 {
+            return self.is_searching;
         }
+        self.is_input_editing
     }
 
     // ==========================================
@@ -536,6 +656,9 @@ impl App {
                             self.status_message = Some(format!("Removed '{}' from favorites.", current_tpl.name));
                         }
                     }
+                }
+                KeyCode::Char('m') | KeyCode::Char('M') => {
+                    self.manual_template_modal = Some(ManualTemplateForm::default());
                 }
                 KeyCode::Left | KeyCode::Char('h') => {
                     self.create_template_filter_idx = if self.create_template_filter_idx == 0 {
@@ -579,6 +702,10 @@ impl App {
                     self.create_pane = 1;
                     self.create_field_idx = 0;
                 }
+                KeyCode::Esc => {
+                    self.current_tab = 0;
+                    return false;
+                }
                 _ => {}
             }
             return false;
@@ -586,10 +713,17 @@ impl App {
 
         // 2. Project Details Form Container (Pane 1)
         match key.code {
-            KeyCode::Char('q') if !is_text_field => {
+            KeyCode::Esc => {
+                if self.is_input_editing {
+                    self.is_input_editing = false;
+                } else {
+                    self.create_pane = 0;
+                }
+            }
+            KeyCode::Char('q') if !is_text_field || !self.is_input_editing => {
                 return true;
             }
-            KeyCode::Char('f') | KeyCode::Char('F') if !is_text_field => {
+            KeyCode::Char('f') | KeyCode::Char('F') if !is_text_field || !self.is_input_editing => {
                 if let Some(current_tpl) = self.templates.get(self.create_template_idx).cloned() {
                     let now_fav = self.config.toggle_favorite(&current_tpl.name);
                     let _ = save_config(&self.config);
@@ -604,17 +738,50 @@ impl App {
                     }
                 }
             }
-            KeyCode::Left if !is_text_field => {
-                self.create_pane = 0;
+            KeyCode::Left => {
+                if !self.is_input_editing {
+                    let lic_field = if is_client { 4 } else { 3 };
+                    let git_field = if is_client { 5 } else { 4 };
+                    if self.create_field_idx == 0 {
+                        self.create_category_idx = if self.create_category_idx == 0 { 2 } else { self.create_category_idx - 1 };
+                        self.update_destination_path();
+                        let max_f = if self.create_category_idx == 1 { 6 } else { 5 };
+                        if self.create_field_idx > max_f {
+                            self.create_field_idx = max_f;
+                        }
+                    } else if self.create_field_idx == lic_field {
+                        self.create_license_idx = if self.create_license_idx == 0 { 4 } else { self.create_license_idx - 1 };
+                    } else if self.create_field_idx == git_field {
+                        self.create_init_git = !self.create_init_git;
+                    }
+                }
+            }
+            KeyCode::Right => {
+                if !self.is_input_editing {
+                    let lic_field = if is_client { 4 } else { 3 };
+                    let git_field = if is_client { 5 } else { 4 };
+                    if self.create_field_idx == 0 {
+                        self.create_category_idx = (self.create_category_idx + 1) % 3;
+                        self.update_destination_path();
+                        let max_f = if self.create_category_idx == 1 { 6 } else { 5 };
+                        if self.create_field_idx > max_f {
+                            self.create_field_idx = max_f;
+                        }
+                    } else if self.create_field_idx == lic_field {
+                        self.create_license_idx = (self.create_license_idx + 1) % 5;
+                    } else if self.create_field_idx == git_field {
+                        self.create_init_git = !self.create_init_git;
+                    }
+                }
             }
             KeyCode::Up => {
+                self.is_input_editing = false;
                 if self.create_field_idx > 0 {
                     self.create_field_idx -= 1;
-                } else {
-                    self.create_pane = 0;
                 }
             }
             KeyCode::Down => {
+                self.is_input_editing = false;
                 if self.create_field_idx < max_fields {
                     self.create_field_idx += 1;
                 }
@@ -638,26 +805,43 @@ impl App {
                 } else if self.create_field_idx == btn_field {
                     self.execute_create_project();
                 } else if is_text_field {
-                    self.append_char_create(' ');
-                    self.update_destination_path();
+                    if self.is_input_editing {
+                        self.append_char_create(' ');
+                        self.update_destination_path();
+                    } else {
+                        self.is_input_editing = true;
+                    }
                 }
             }
             KeyCode::Backspace => {
-                if is_text_field {
+                if is_text_field && self.is_input_editing {
                     self.backspace_char_create(is_client);
                     self.update_destination_path();
                 }
             }
             KeyCode::Char(c) => {
                 if is_text_field {
-                    self.append_char_create(c);
-                    self.update_destination_path();
+                    if self.is_input_editing {
+                        self.append_char_create(c);
+                        self.update_destination_path();
+                    } else if c == 'e' || c == 'i' || c == 'E' || c == 'I' {
+                        self.is_input_editing = true;
+                    }
                 }
             }
             KeyCode::Enter => {
                 let btn_field = if is_client { 6 } else { 5 };
                 if self.create_field_idx == btn_field {
                     self.execute_create_project();
+                } else if is_text_field {
+                    if self.is_input_editing {
+                        self.is_input_editing = false;
+                        if self.create_field_idx < max_fields {
+                            self.create_field_idx += 1;
+                        }
+                    } else {
+                        self.is_input_editing = true;
+                    }
                 } else if self.create_field_idx < max_fields {
                     self.create_field_idx += 1;
                 }
@@ -830,6 +1014,9 @@ impl App {
         let count = self.filtered_projects().len();
 
         match key.code {
+            KeyCode::Esc => {
+                self.current_tab = 0;
+            }
             KeyCode::Char('q') => {
                 return true;
             }
@@ -868,6 +1055,68 @@ impl App {
                 self.reload_projects();
                 self.status_message = Some("Projects list refreshed from workspace.".into());
             }
+            KeyCode::Char('f') | KeyCode::Char('F') => {
+                // Pin / unpin selected project to the top of the list
+                let target = self
+                    .filtered_projects()
+                    .get(self.selected_project_idx)
+                    .map(|p| p.name.clone());
+
+                if let Some(name) = target {
+                    let is_pinned = self.config.toggle_pinned_project(&name);
+                    let _ = crate::config::save_config(&self.config);
+                    self.reload_projects();
+                    if let Some(pos) = self.filtered_projects().iter().position(|p| p.name == name) {
+                        self.selected_project_idx = pos;
+                    }
+                    if is_pinned {
+                        self.status_message = Some(format!("★ Pinned project '{}' to top of list.", name));
+                    } else {
+                        self.status_message = Some(format!("Unpinned project '{}'.", name));
+                    }
+                }
+            }
+            KeyCode::Char('s') | KeyCode::Char('S') => {
+                // Cycle project sort mode
+                self.cycle_sort_mode();
+            }
+            KeyCode::Char('i') | KeyCode::Char('I') | KeyCode::Char('v') | KeyCode::Char('V') => {
+                // Open selected project in IDE / Editor
+                let target = self
+                    .filtered_projects()
+                    .get(self.selected_project_idx)
+                    .map(|p| (p.name.clone(), p.path.clone()));
+
+                if let Some((name, path)) = target {
+                    if let Some(editor) = crate::utils::resolve_editor() {
+                        if crate::utils::is_gui_editor(&editor) {
+                            match crate::utils::launch_gui_editor(&editor, &path) {
+                                Ok(_) => {
+                                    self.status_message = Some(format!("Launched {} for project '{}'", editor, name));
+                                }
+                                Err(e) => {
+                                    self.popup_message = Some(format!("[ERROR] Failed to open editor: {}", e));
+                                }
+                            }
+                        } else {
+                            self.pending_action = Some(PendingAction::OpenEditor(path, editor));
+                        }
+                    } else {
+                        self.popup_message = Some("No editor found in $EDITOR / $VISUAL or PATH.\nInstall code, nvim, vim or nano, or export EDITOR=nano.".into());
+                    }
+                }
+            }
+            KeyCode::Char('$') => {
+                // Open interactive terminal shell in project directory
+                let target = self
+                    .filtered_projects()
+                    .get(self.selected_project_idx)
+                    .map(|p| p.path.clone());
+
+                if let Some(path) = target {
+                    self.pending_action = Some(PendingAction::OpenTerminal(path));
+                }
+            }
             KeyCode::Char('e') | KeyCode::Char('E') => {
                 // Interactive In-TUI Markdown Editor / Viewer for project README
                 self.open_markdown_editor_for_project();
@@ -890,7 +1139,13 @@ impl App {
                     }
                 }
             }
-            KeyCode::Char('t') | KeyCode::Char('T') => {
+            KeyCode::Char('c') | KeyCode::Char('C') => {
+                // Open Workspace Configuration modal
+                self.current_tab = 2;
+                self.config_field_idx = 0;
+                return false;
+            }
+            KeyCode::Char('p') | KeyCode::Char('P') | KeyCode::Char('t') | KeyCode::Char('T') => {
                 // Interactive Directory Tree viewer modal
                 let target = self
                     .filtered_projects()
@@ -898,8 +1153,10 @@ impl App {
                     .map(|p| (p.name.clone(), p.path.clone()));
 
                 if let Some((name, path)) = target {
-                    let mut opts = TreeOptions::default();
-                    opts.use_nerd_font = self.config.use_nerd_font();
+                    let opts = TreeOptions {
+                        use_nerd_font: self.config.use_nerd_font(),
+                        ..Default::default()
+                    };
                     let (lines, _) = get_tree_lines(&path, &opts);
                     self.tree_popup = Some((name, lines, 0));
                 }
@@ -940,89 +1197,6 @@ impl App {
                         self.popup_message = Some(format!("Project '{}' is already in the archive.", name));
                     } else {
                         self.confirm_archive = Some((name, path));
-                    }
-                }
-            }
-            _ => {}
-        }
-        false
-    }
-
-    // ==========================================
-    // TAB 2: TEMPLATES SECTION HANDLERS
-    // ==========================================
-    fn handle_templates_keys(&mut self, key: KeyEvent) -> bool {
-        match key.code {
-            KeyCode::Char('q') => {
-                return true;
-            }
-            KeyCode::Left | KeyCode::Char('h') => {
-                self.templates_filter_idx = if self.templates_filter_idx == 0 {
-                    2
-                } else {
-                    self.templates_filter_idx - 1
-                };
-                self.templates_view_idx = 0;
-            }
-            KeyCode::Right | KeyCode::Char('l') => {
-                self.templates_filter_idx = (self.templates_filter_idx + 1) % 3;
-                self.templates_view_idx = 0;
-            }
-            KeyCode::Char('m') | KeyCode::Char('M') | KeyCode::Char('n') | KeyCode::Char('N') => {
-                self.manual_template_modal = Some(ManualTemplateForm::default());
-            }
-            KeyCode::Char('f') | KeyCode::Char('F') => {
-                let filtered = self.filtered_templates_for_view();
-                if let Some(&(_, current_tpl)) = filtered.get(self.templates_view_idx) {
-                    let name = current_tpl.name.clone();
-                    let now_fav = self.config.toggle_favorite(&name);
-                    let _ = save_config(&self.config);
-                    self.reload_templates();
-                    let new_filtered = self.filtered_templates_for_view();
-                    if let Some(new_pos) = new_filtered.iter().position(|(_, t)| t.name == name) {
-                        self.templates_view_idx = new_pos;
-                    }
-                    if now_fav {
-                        self.status_message = Some(format!("Pinned '{}' to top favorites.", name));
-                    } else {
-                        self.status_message = Some(format!("Removed '{}' from favorites.", name));
-                    }
-                }
-            }
-            KeyCode::Up | KeyCode::Char('k') => {
-                if self.templates_view_idx > 0 {
-                    self.templates_view_idx -= 1;
-                }
-            }
-            KeyCode::Down | KeyCode::Char('j') => {
-                let count = self.filtered_templates_for_view().len();
-                if count > 0 && self.templates_view_idx < count - 1 {
-                    self.templates_view_idx += 1;
-                }
-            }
-            KeyCode::Char('c') | KeyCode::Char('C') => {
-                let out_dir = PathBuf::from(&self.config.custom_templates_dir);
-                let _ = fs::create_dir_all(&out_dir);
-                let out_file = out_dir.join("captured-template.yaml");
-
-                let opts = CaptureOptions {
-                    name: "captured-template".to_string(),
-                    description: "Template captured from working directory".to_string(),
-                    output_path: out_file.clone(),
-                    replace_name_with_var: true,
-                    max_file_size_kb: 128,
-                };
-
-                match capture_directory_as_template(&PathBuf::from("."), &opts) {
-                    Ok(_) => {
-                        self.reload_templates();
-                        self.popup_message = Some(format!(
-                            "[OK] Current directory captured as template!\nSaved to: {}",
-                            out_file.display()
-                        ));
-                    }
-                    Err(e) => {
-                        self.popup_message = Some(format!("[ERROR] Capture failed:\n{}", e));
                     }
                 }
             }
@@ -1289,7 +1463,11 @@ impl App {
             MarkdownModalMode::Preview => {
                 match key.code {
                     KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('Q') => {
-                        self.md_editor_modal = None;
+                        if modal.is_dirty {
+                            self.confirm_discard_md = true;
+                        } else {
+                            self.md_editor_modal = None;
+                        }
                     }
                     KeyCode::Tab | KeyCode::Char('e') | KeyCode::Char('E') | KeyCode::Char('i') | KeyCode::Char('I') | KeyCode::Enter => {
                         modal.mode = MarkdownModalMode::Edit;
@@ -1318,6 +1496,15 @@ impl App {
                 }
             }
             MarkdownModalMode::Edit => {
+                if is_ctrl && (key.code == KeyCode::Char('q') || key.code == KeyCode::Char('Q')) {
+                    if modal.is_dirty {
+                        self.confirm_discard_md = true;
+                    } else {
+                        self.md_editor_modal = None;
+                    }
+                    return false;
+                }
+
                 if is_ctrl && (key.code == KeyCode::Char('t') || key.code == KeyCode::Char('T')) {
                     if modal.lines.is_empty() {
                         modal.lines.push(String::new());
@@ -1476,76 +1663,137 @@ impl App {
             return false;
         }
 
-        // 0: Workspace Root, 1: Default Author, 2: Default License, 3: Default Template, 4: Icon Mode, 5: Save Button, 6: Init Button
-        let is_text_field = self.config_field_idx == 0 || self.config_field_idx == 1 || self.config_field_idx == 3;
+        // 0: Workspace Root, 1: Custom Templates Dir, 2: Default Author, 3: Default License, 4: Default Template, 5: Icon Mode, 6: Save Button, 7: Init Button
+        let is_text_field = self.config_field_idx == 0
+            || self.config_field_idx == 1
+            || self.config_field_idx == 2
+            || self.config_field_idx == 4;
 
         match key.code {
-            KeyCode::Char('q') if !is_text_field => {
+            KeyCode::Esc => {
+                if self.is_input_editing {
+                    self.is_input_editing = false;
+                } else {
+                    self.current_tab = 0;
+                }
+            }
+            KeyCode::Char('q') if !is_text_field || !self.is_input_editing => {
                 return true;
             }
+            KeyCode::Left => {
+                if !self.is_input_editing {
+                    if self.config_field_idx == 3 {
+                        let licenses = ["MIT", "Apache-2.0", "BSD-3-Clause", "Unlicense", "None"];
+                        let cur_idx = licenses
+                            .iter()
+                            .position(|l| *l == self.config.default_license)
+                            .unwrap_or(0);
+                        let new_idx = if cur_idx == 0 { licenses.len() - 1 } else { cur_idx - 1 };
+                        self.config.default_license = licenses[new_idx].to_string();
+                    } else if self.config_field_idx == 5 {
+                        self.config.cycle_icon_mode();
+                        let mode = if self.config.use_nerd_font() { "Nerd Font (enabled)" } else { "ASCII (standard)" };
+                        self.status_message = Some(format!("Icon mode set to: {}", mode));
+                    }
+                }
+            }
+            KeyCode::Right => {
+                if !self.is_input_editing {
+                    if self.config_field_idx == 3 {
+                        let licenses = ["MIT", "Apache-2.0", "BSD-3-Clause", "Unlicense", "None"];
+                        let cur_idx = licenses
+                            .iter()
+                            .position(|l| *l == self.config.default_license)
+                            .unwrap_or(0);
+                        self.config.default_license = licenses[(cur_idx + 1) % licenses.len()].to_string();
+                    } else if self.config_field_idx == 5 {
+                        self.config.cycle_icon_mode();
+                        let mode = if self.config.use_nerd_font() { "Nerd Font (enabled)" } else { "ASCII (standard)" };
+                        self.status_message = Some(format!("Icon mode set to: {}", mode));
+                    }
+                }
+            }
             KeyCode::Up => {
+                self.is_input_editing = false;
                 if self.config_field_idx > 0 {
                     self.config_field_idx -= 1;
                 }
             }
             KeyCode::Down => {
-                if self.config_field_idx < 6 {
+                self.is_input_editing = false;
+                if self.config_field_idx < 7 {
                     self.config_field_idx += 1;
                 }
             }
             KeyCode::Char(' ') => {
-                if self.config_field_idx == 2 {
+                if self.config_field_idx == 3 {
                     let licenses = ["MIT", "Apache-2.0", "BSD-3-Clause", "Unlicense", "None"];
                     let cur_idx = licenses
                         .iter()
                         .position(|l| *l == self.config.default_license)
                         .unwrap_or(0);
                     self.config.default_license = licenses[(cur_idx + 1) % licenses.len()].to_string();
-                } else if self.config_field_idx == 4 {
+                } else if self.config_field_idx == 5 {
                     self.config.cycle_icon_mode();
                     let mode = if self.config.use_nerd_font() { "Nerd Font (enabled)" } else { "ASCII (standard)" };
                     self.status_message = Some(format!("Icon mode set to: {}", mode));
-                } else if self.config_field_idx == 5 {
-                    self.execute_save_config();
                 } else if self.config_field_idx == 6 {
+                    self.execute_save_config();
+                } else if self.config_field_idx == 7 {
                     self.initialize_master_workspace();
                 } else if is_text_field {
-                    self.append_char_config(' ');
+                    if self.is_input_editing {
+                        self.append_char_config(' ');
+                    } else {
+                        self.is_input_editing = true;
+                    }
                 }
             }
             KeyCode::Backspace => {
-                if is_text_field {
+                if is_text_field && self.is_input_editing {
                     match self.config_field_idx {
                         0 => { self.config.workspace_root.pop(); }
-                        1 => { self.config.default_author.pop(); }
-                        3 => { self.config.default_template.pop(); }
+                        1 => { self.config.custom_templates_dir.pop(); }
+                        2 => { self.config.default_author.pop(); }
+                        4 => { self.config.default_template.pop(); }
                         _ => {}
                     }
                 }
             }
             KeyCode::Enter => {
-                if self.config_field_idx == 2 {
+                if self.config_field_idx == 3 {
                     let licenses = ["MIT", "Apache-2.0", "BSD-3-Clause", "Unlicense", "None"];
                     let cur_idx = licenses
                         .iter()
                         .position(|l| *l == self.config.default_license)
                         .unwrap_or(0);
                     self.config.default_license = licenses[(cur_idx + 1) % licenses.len()].to_string();
-                } else if self.config_field_idx == 4 {
+                } else if self.config_field_idx == 5 {
                     self.config.cycle_icon_mode();
                     let mode = if self.config.use_nerd_font() { "Nerd Font (enabled)" } else { "ASCII (standard)" };
                     self.status_message = Some(format!("Icon mode set to: {}", mode));
-                } else if self.config_field_idx == 5 {
-                    self.execute_save_config();
                 } else if self.config_field_idx == 6 {
+                    self.execute_save_config();
+                } else if self.config_field_idx == 7 {
                     self.initialize_master_workspace();
-                } else if self.config_field_idx < 6 {
-                    self.config_field_idx += 1;
+                } else if is_text_field {
+                    if self.is_input_editing {
+                        self.is_input_editing = false;
+                        if self.config_field_idx < 7 {
+                            self.config_field_idx += 1;
+                        }
+                    } else {
+                        self.is_input_editing = true;
+                    }
                 }
             }
             KeyCode::Char(c)
                 if is_text_field => {
-                    self.append_char_config(c);
+                    if self.is_input_editing {
+                        self.append_char_config(c);
+                    } else if c == 'e' || c == 'i' || c == 'E' || c == 'I' {
+                        self.is_input_editing = true;
+                    }
                 }
             _ => {}
         }
@@ -1558,9 +1806,12 @@ impl App {
         } else {
             self.update_destination_path();
             self.reload_projects();
+            self.reload_templates();
+            self.current_tab = 0;
             self.popup_message = Some(format!(
-                "[OK] Configuration Saved!\n\nWorkspace Root: {}\n\nGuaranteed Workspace Structure:\n  ├── personal/  (Personal projects & prototypes)\n  ├── clients/   (Client work & deliverables)\n  ├── resources/ (Shared master asset library)\n  └── archive/   (Yearly cold storage)",
-                self.config.workspace_root
+                "[OK] Configuration Saved!\n\nWorkspace Root: {}\nCustom Templates: {}\n\nGuaranteed Workspace Structure:\n  ├── personal/  (Personal projects & prototypes)\n  ├── clients/   (Client work & deliverables)\n  ├── resources/ (Shared master asset library)\n  └── archive/   (Yearly cold storage)",
+                self.config.workspace_root,
+                self.config.custom_templates_dir
             ));
         }
     }
@@ -1568,8 +1819,9 @@ impl App {
     fn append_char_config(&mut self, c: char) {
         match self.config_field_idx {
             0 => self.config.workspace_root.push(c),
-            1 => self.config.default_author.push(c),
-            3 => self.config.default_template.push(c),
+            1 => self.config.custom_templates_dir.push(c),
+            2 => self.config.default_author.push(c),
+            4 => self.config.default_template.push(c),
             _ => {}
         }
     }
@@ -1850,6 +2102,16 @@ fn scan_category_dir(base: &Path, cat: ProjectCategory, list: &mut Vec<ProjectIt
                 .unwrap_or("general")
                 .to_string();
 
+            let created_at = crate::utils::get_creation_time(&p);
+            let last_modified = p
+                .metadata()
+                .and_then(|m| m.modified())
+                .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
+            let git_status = crate::utils::check_git_status(&p);
+            let health_score = crate::maintainer::audit_project(&p, None)
+                .map(|r| r.health_score)
+                .unwrap_or(80);
+
             list.push(ProjectItem {
                 name: name.to_string(),
                 category: cat.clone(),
@@ -1859,6 +2121,10 @@ fn scan_category_dir(base: &Path, cat: ProjectCategory, list: &mut Vec<ProjectIt
                 total_bytes,
                 detected_type: detected,
                 preview_files,
+                created_at,
+                last_modified,
+                health_score,
+                git_status,
             });
         }
     }
@@ -1959,6 +2225,36 @@ fn run_app<B: ratatui::backend::Backend>(
                 }
                 _ => {}
             }
+        }
+
+        if let Some(action) = app.pending_action.take() {
+            disable_raw_mode()?;
+            let mut out = io::stdout();
+            execute!(out, LeaveAlternateScreen, DisableMouseCapture)?;
+            let _ = terminal.show_cursor();
+
+            match action {
+                PendingAction::OpenEditor(path, editor) => {
+                    let parts: Vec<&str> = editor.split_whitespace().collect();
+                    if !parts.is_empty() {
+                        let mut cmd = std::process::Command::new(parts[0]);
+                        if parts.len() > 1 {
+                            cmd.args(&parts[1..]);
+                        }
+                        cmd.arg(&path);
+                        let _ = cmd.status();
+                    }
+                }
+                PendingAction::OpenTerminal(path) => {
+                    let _ = crate::utils::open_in_terminal_shell(&path);
+                }
+            }
+
+            enable_raw_mode()?;
+            execute!(out, EnterAlternateScreen, EnableMouseCapture)?;
+            terminal.clear()?;
+            app.reload_projects();
+            app.status_message = Some("Returned to Seed TUI.".into());
         }
     }
 }

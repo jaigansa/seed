@@ -1,159 +1,180 @@
 # Seed (v0.2.0)
 
-> A focused, powerful Project Directory & File Creator, Scaffolder, and Workspace Manager TUI app written in Rust.
+> A modern, keyboard-first Terminal Workspace Manager, Project Scaffolder, and Health Auditor written in pure Rust.
 
-**No more messy current directory (`.`) clutter!** Seed strictly stores and maintains all your projects in your designated workspace path configured in `~/.config/seed/config.toml`.
+Seed replaces cluttered working directories with an organized, 4-pillar workspace architecture, scaffolds multi-disciplinary software and creative projects in seconds, audits project health, and provides a keyboard-driven terminal dashboard.
 
 ---
 
-## Guaranteed Workspace Hierarchy
+## Key Features
 
-All project creation and initialization automatically routes to your configured workspace:
+- **Unified Dashboard**: Fast, keyboard-first TUI dashboard with live search, project metadata cards, and preview inspectors.
+- **Developer Actions**: 
+  - **`[I]` / `[V]`**: Open selected project in your configured `$EDITOR` or graphical IDE (`code`, `cursor`, `nvim`, `vim`).
+  - **`[$]`**: Drop directly into an interactive subshell inside the project folder.
+  - **`[S]`**: Cycle project sorting modes (Recently Modified, Alphabetical, Disk Size, Health Score).
+  - **`[F]`**: Pin favorite projects to the very top with gold star badges (`★`).
+- **In-TUI Markdown Editor**: Edit and preview project documentation with checkbox toggle support (`- [ ]`), dirty buffer tracking, and safety exit confirmations.
+- **Project Doctor & Health Auditor**: Diagnostic engine that detects missing documentation/licenses, checks Git hygiene, sweeps junk files (`.DS_Store`, `Thumbs.db`), and calculates a health score.
+- **Multi-Disciplinary Scaffolder**: 30+ built-in presets covering software (Rust, TypeScript, Python, FastAPI, React, C++, Go) and creative workflows (Blender 3D, CAD 3D printing, DaVinci Resolve video, podcast, logo design, game design).
+- **Yearly Archival**: Safe one-key archival (`[A]`) moving completed work into cold storage (`archive/<year>/`).
+- **Zero Runtime Dependencies**: Compiled to a single, compact, self-contained native binary.
+
+---
+
+## Workspace Architecture
+
+All project scaffolding and organization automatically routes to your configured master workspace:
 
 ```text
-Your Configured Workspace (e.g. ~/Projects or ~/Creative)
-├── personal/              # Personal & portfolio work
-│   └── your_project/
+Your Configured Workspace Root (e.g. ~/Projects)
+├── personal/              # Personal software, experiments & creative assets
+│   └── <project_name>/
 ├── clients/               # Client commissions & deliverables
-│   └── ClientName/
-│       └── your_project/
-├── resources/             # Shared master asset library
-│   └── your_asset/
-└── archive/               # Yearly cold-storage for finished work
+│   └── <client_name>/
+│       └── <project_name>/
+├── resources/             # Shared master 3D, audio, font & stock libraries
+│   └── <resource_name>/
+└── archive/               # Yearly cold-storage for completed work
     └── 2026/
-        └── your_project/
+        └── <project_name>/
 ```
 
 ---
 
-## Running the TUI App
+## Installation & Packaging
+
+### Option 1: Universal Installer Script
+```bash
+# Clone the repository and run the installer:
+git clone https://github.com/jaigansa/seed.git
+cd seed
+bash install.sh
+```
+This builds and installs `seed` to `~/.local/bin/seed`, automatically configures shell completions for Bash, Zsh, and Fish, and checks your `$PATH`.
+
+### Option 2: From Source with Cargo
+```bash
+cargo install --path .
+```
+
+### Option 3: Arch Linux (AUR / `makepkg`)
+```bash
+cd packages/arch
+makepkg -si
+```
+
+### Option 4: Debian / Ubuntu (`.deb`)
+```bash
+bash packages/debian/build_deb.sh
+sudo dpkg -i seed_0.2.0_amd64.deb
+```
+
+---
+
+## Shell Auto-Completions
+
+Generate native auto-completion scripts for your active shell on the fly:
 
 ```bash
-# Launch interactive TUI
-./target/release/seed
+# Bash
+seed completions bash > ~/.local/share/bash-completion/completions/seed
+
+# Zsh
+seed completions zsh > ~/.zfunc/_seed
+
+# Fish
+seed completions fish > ~/.config/fish/completions/seed.fish
+
+# PowerShell
+seed completions powershell > seed.ps1
 ```
 
-### The 4 Dedicated Sections:
+---
 
-1. **1. Create New Project**: Pick an output-driven template (Video: `yt-video`, Audio: `podcast`, `music`, Publishing: `book`, `newsletter`, `presentation`, `research-paper`, `portfolio`, Fabrication & 3D: `cad-maker`, `3d-blender`, `vector-design`, `photo-editing`, `creative-coding`, Interactive: `game`, `client-project`, Software: `react`, `fastapi`, `data-science`, `docker`, `docs`, `rust`, `python`, `go`, `cpp`, `c`, `java`, `bash`, `web`, `typescript`, `minimal`).
-   - Press **`[F]`** to mark the highlighted template as a favorite: it immediately gets pinned to the top of the list with a `[FAV]` badge!
-   - Choose Category (`Personal`, `Client`, or `Resource`).
-   - Automatically paths to `<workspace>/personal/<name>` or `<workspace>/clients/<client>/<name>`.
-   - Inspect concrete target deliverables before creating.
-   - Press **`[Enter]`** to scaffold!
+## Interactive TUI Dashboard Keybindings
 
-2. **2. View Projects**: Directly inspect, browse, search, audit, open, and archive projects across your workspace.
-   - Filter bar: Switch between `[All]`, `[Personal]`, `[Clients]`, `[Resources]`, and `[Archive]` using **`[←]` / `[→]`**.
-   - **Live Search (`/`)**: Instant real-time search across project names, detected stacks, and client names.
-   - Browse projects using **`[↑]` / `[↓]`** or mouse wheel scroll.
-   - Right-hand **Selected Project Details & Actions** container is a clean canvas for viewing and updating project info (full path, detected stack/type, directory/file counts) and gives quick actions to **view/edit** the project via file manager/tree or to act on it.
-   - Press **`[O]`** or **`[Enter]`** to open selected project folder in your desktop file manager / viewer (to browse and edit files)!
-   - Press **`[D]`** to open the **Doctor Health Gauge** modal with visual score bars and recommendations.
-   - Press **`[T]`** to inspect full scrollable directory tree of the project.
-   - Press **`[A]`** to open safe **Confirmation Dialog** before archiving to `archive/<year>/`.
-   - Press **`[R]`** to refresh projects from disk.
+Launch the interactive dashboard at any time:
+```bash
+seed tui
+# or simply:
+seed
+```
 
-3. **3. Templates**: Browse, filter, and create both **Built-in Presets** and **Custom Manual Templates**.
-   - Filter bar: Switch between `[All]`, `[Preset]`, and `[Manual]` templates using **`[←]` / `[→]`**.
-   - Press **`[M]`** to open the **New Manual Template Creator** modal (define custom template name, description, directories, starter files, and deliverables interactively!).
-   - Press **`[F]`** to pin/unpin any template to the top of your favorites.
-   - Press **`[C]`** to capture any directory into a reusable custom template.
+### Main Dashboard (`Tab 0: Projects`)
 
-4. **4. Project Paths & Config**:
-   - Set your **Workspace Root** (e.g., `~/Projects` or `~/Creative`).
-   - Toggle **Icon Mode** between `< ascii >` (clean text) and `< nerdfont >` (pure Rust terminal glyphs) with **`[Space]`**.
-   - Edit paths without hotkey collisions (all standard characters type cleanly into text fields).
-   - Press **`Ctrl+S`** or navigate to **`[Save Configuration]`** to persist changes.
-   - Navigate to **`[Initialize Master Workspace]`** to create the clean master folders (`personal/`, `clients/`, `resources/`, `archive/`).
+| Hotkey | Action |
+|:---:|---|
+| **`[F]`** | **Pin / Unpin project to top of list** (marked with `★`) |
+| **`[S]`** | **Cycle Sort Mode** (`Recent` ➔ `Name A-Z` ➔ `Size` ➔ `Health`) |
+| **`[I]` / `[V]`** | **Open in IDE / Editor** (launches `$VISUAL`, `$EDITOR`, `code`, `nvim`, `vim`) |
+| **`[$]`** | **Launch Subshell** inside selected project directory |
+| **`[E]`** | **Edit / Preview README** in in-TUI Markdown editor |
+| **`[O]` / `[Enter]`** | **Open project directory** in desktop file manager |
+| **`[D]`** | **Project Doctor**: Audit health, missing files & view score gauge |
+| **`[P]` / `[T]`** | **Interactive Directory Tree** preview with scrollable file list |
+| **`[A]`** | **Archive project** to `archive/<year>/` with confirmation dialog |
+| **`[N]`** | **New Project**: Open scaffolding modal overlay |
+| **`[C]`** | **Configuration**: Open workspace paths and settings modal |
+| **`[/]`** | **Live Search**: Instant real-time filter across projects |
+| **`[R]`** | **Refresh**: Rescan workspace projects from disk |
+| **`[?]` / `[F1]`** | **Help**: Shortcut cheat sheet modal overlay |
+| **`[q]`** | **Quit application** |
 
 ---
 
-## TUI Keybindings
+## Command Line Interface (CLI)
 
-| Key | Action |
-|---|---|
-| `Tab` / `BackTab` | Switch between the 4 sections |
-| `1`, `2`, `3`, `4` | Jump directly to a section |
-| `Mouse Click` | Click on section tabs to switch directly |
-| `Mouse Scroll` | Scroll projects list, templates, or tree lines |
-| `↑` / `↓` | Navigate fields / projects in list |
-| `←` / `→` | Change template (Create) / Switch filter category (View Projects & Templates) |
-| `/` | Live Search projects (Tab 2) |
-| `M` | Create a New Manual Template modal (Tab 3 Templates) |
-| `Space` | Cycle categories (`Personal` / `Client` / `Resource`), cycle licenses, or toggle git repo |
-| `Enter` | Create Project (Create tab) / Open Folder (View Projects tab) / Save or Init (Config tab) |
-| `O` | Open selected project folder in desktop file manager (View Projects tab) |
-| `D` | Run Doctor health check with visual Gauge modal (View Projects tab) |
-| `T` | View scrollable Directory Tree modal (View Projects tab) |
-| `A` | Archive project with confirmation dialog (View Projects tab) |
-| `R` | Refresh workspace project list (View Projects tab) |
-| `F` | Toggle favorite template (pins template to top of list with `[FAV]`) |
-| `C` | Capture directory into custom manual template (Tab 3) |
-| `Ctrl+S` | Save configuration (Config tab) or Save Manual Template (Modal) |
-| `q` | Quit application (when not editing a text field) |
-| `Ctrl+C` | Quit application anytime |
-
----
-
-## Preset & Manual Templates CLI
-
-Manage and filter preset and manual templates from your shell:
+Seed includes a complete command-line interface for scripting and terminal efficiency:
 
 ```bash
-# List all templates with [Preset] and [Manual] badges
-seed list
+# Initialize standard 4-pillar workspace structure
+seed workspace ~/Projects
 
-# List only built-in preset workflows
-seed list --preset
+# Scaffold a new personal project
+seed new my-api -t rust -c personal --git
 
-# List only custom manual templates
-seed list --manual
+# Scaffold a client commission
+seed new campaign-brand -t logo -c client --client "AcmeCorp"
 
-# Create a new custom manual template
-seed template-new my-workflow --dirs "src,tests,docs" --files "README.md,main.py,config.json" --outputs "Executable App,API Docs"
+# Audit project health and detect junk files
+seed doctor ./personal/my-api
 
-# Create a project using a manual template
-seed new my-project -t my-workflow
+# Repair missing baseline files & clean junk
+seed sync ./personal/my-api
 
-# Create a project in manual blank mode
-seed new my-scratch-app -m
+# Pin a project to the top of the dashboard
+seed pin my-api
+
+# Archive a completed project
+seed archive ./clients/AcmeCorp/campaign-brand
+
+# Visualize directory tree with sizes
+seed tree ./personal/my-api
+
+# Configure icon mode (nerdfont or ascii)
+seed icons toggle
 ```
 
 ---
 
-## Favorite Templates CLI
+## Icon Support
 
-You can also manage your favorite pinned templates directly from your shell:
+Seed includes a pure Rust icon engine with zero external dependencies:
+- **`ascii`**: Universal ASCII indicators (`[★]`, `[OK]`, `[DIR]`, `-`, `+`). Works seamlessly across all terminals and remote SSH sessions.
+- **`nerdfont`**: Crisp Nerd Font glyphs (`` Rust, `` Python, `` Audio, `` Video, `` Folders, `` Stars).
 
+Toggle anytime via `seed icons toggle` or in the TUI Settings modal (`[C]`).
+
+---
+
+## Verification & Test Suite
+
+All 55 unit and integration tests pass cleanly:
 ```bash
-# Toggle a template as favorite (pins to the very top of lists)
-seed fav rust
-seed fav podcast
-
-# List all currently pinned favorites
-seed fav
-
-# View all templates with favorites badged on top
-seed list
-
-# Remove a specific favorite
-seed fav rust --remove
-
-# Clear all favorites
-seed fav --clear
+cargo test
+cargo clippy --all-targets
 ```
-
----
-
-## Icon Support (Pure Rust)
-
-`seed` includes a pure Rust icon mapping engine with zero external dependencies and zero Unicode emojis:
-- **`ascii` (Default)**: Clean, universal ASCII badges (`[FAV]`, `[OK]`, `[DIR]`, `-`, `+`). Works on all terminals and remote SSH sessions without requiring special fonts.
-- **`nerdfont`**: Renders crisp Nerd Font glyphs (`` Rust, `` Python, `` Podcast, `` Video, `` Folders, `` Stars).
-
-To toggle icon mode:
-- **TUI**: In Tab 4 (`Project Paths & Config`), navigate to `Icon Mode` and press **`[Space]`**.
-- **Config**: Set `icon_mode = "nerdfont"` in `~/.config/seed/config.toml`.
 
 ---
 

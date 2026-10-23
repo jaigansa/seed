@@ -2,6 +2,7 @@
 
 pub mod capture;
 pub mod cli;
+pub mod completions;
 pub mod config;
 pub mod creator;
 pub mod icons;

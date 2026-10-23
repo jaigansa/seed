@@ -4,7 +4,7 @@ use ratatui::{
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{
-        Block, BorderType, Borders, Clear, Gauge, List, ListItem, ListState, Paragraph, Tabs, Wrap,
+        Block, BorderType, Borders, Clear, Gauge, List, ListItem, ListState, Paragraph, Wrap,
     },
     Frame,
 };
@@ -20,27 +20,33 @@ pub fn render(f: &mut Frame, app: &mut App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3), // Header & Tabs
-            Constraint::Min(10),   // Active Tab Content
+            Constraint::Length(3), // Header & Quick Action Bar
+            Constraint::Min(10),   // Unified Workspace Dashboard
             Constraint::Length(2), // Bottom Status & Keybindings
         ])
         .split(area);
 
     render_header(f, app, chunks[0]);
 
-    match app.current_tab {
-        0 => render_view_projects_tab(f, app, chunks[1]),
-        1 => render_create_tab(f, app, chunks[1]),
-        2 => render_templates_tab(f, app, chunks[1]),
-        3 => render_config_tab(f, app, chunks[1]),
-        _ => {}
-    }
+    // Primary View: Always render the Workspace Dashboard as the base view
+    render_view_projects_tab(f, app, chunks[1]);
 
     render_footer(f, app, chunks[2]);
+
+    // Centered Modal Overlays for creation and settings
+    match app.current_tab {
+        1 => render_create_modal(f, app, area),
+        2 | 3 => render_config_modal(f, app, area),
+        _ => {}
+    }
 
     // Modals render over everything else in priority order
     if let Some(ref modal) = app.md_editor_modal {
         render_markdown_editor_modal(f, modal);
+    }
+
+    if app.confirm_discard_md {
+        render_confirm_discard_modal(f);
     }
 
     if let Some((ref name, ref path)) = app.confirm_archive {
@@ -71,7 +77,7 @@ pub fn render(f: &mut Frame, app: &mut App) {
 fn render_header(f: &mut Frame, app: &App, area: Rect) {
     let header_chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Length(24), Constraint::Min(20)])
+        .constraints([Constraint::Length(18), Constraint::Min(20)])
         .split(area);
 
     let logo = Paragraph::new(Line::from(vec![
@@ -82,8 +88,7 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
                 .bg(Color::Green)
                 .add_modifier(Modifier::BOLD),
         ),
-        Span::styled("v0.2.0 ", Style::default().fg(Color::DarkGray)),
-        Span::styled("[?]Help", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+        Span::styled(" v0.2.0", Style::default().fg(Color::DarkGray)),
     ]))
     .block(
         Block::default()
@@ -93,43 +98,49 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
     );
     f.render_widget(logo, header_chunks[0]);
 
-    let titles: Vec<Line> = vec![
-        Line::from(vec![
-            Span::raw("1. "),
-            Span::styled("View Projects", Style::default().add_modifier(Modifier::BOLD)),
-        ]),
-        Line::from(vec![
-            Span::raw("2. "),
-            Span::styled("New Project", Style::default().add_modifier(Modifier::BOLD)),
-        ]),
-        Line::from(vec![
-            Span::raw("3. "),
-            Span::styled("Templates", Style::default().add_modifier(Modifier::BOLD)),
-        ]),
-        Line::from(vec![
-            Span::raw("4. "),
-            Span::styled("Project Paths & Config", Style::default().add_modifier(Modifier::BOLD)),
-        ]),
-    ];
+    let top_bar = Paragraph::new(Line::from(vec![
+        Span::styled(" 🗁  Workspace: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(&app.config.workspace_root, Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+    ]))
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Plain)
+            .border_style(Style::default().fg(Color::DarkGray))
+            .title(" ◈ Workspace Dashboard "),
+    );
 
-    let tabs = Tabs::new(titles)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Plain)
-                .title(format!(" 🗁  Workspace: {} ", app.config.workspace_root)),
-        )
-        .select(app.current_tab)
-        .style(Style::default().fg(Color::DarkGray))
-        .highlight_style(
-            Style::default()
-                .fg(Color::Cyan)
-                .bg(Color::Rgb(30, 40, 50))
-                .add_modifier(Modifier::BOLD),
-        )
-        .divider(Span::styled(" | ", Style::default().fg(Color::DarkGray)));
+    f.render_widget(top_bar, header_chunks[1]);
+}
 
-    f.render_widget(tabs, header_chunks[1]);
+fn render_create_modal(f: &mut Frame, app: &mut App, screen_area: Rect) {
+    let area = centered_rect(90, 88, screen_area);
+    f.render_widget(Clear, area);
+
+    let modal_block = Block::default()
+        .title(" ◈ New Project ")
+        .borders(Borders::ALL)
+        .border_type(BorderType::Thick)
+        .border_style(Style::default().fg(Color::Green));
+    let inner_area = modal_block.inner(area);
+    f.render_widget(modal_block, area);
+
+    render_create_tab(f, app, inner_area);
+}
+
+fn render_config_modal(f: &mut Frame, app: &mut App, screen_area: Rect) {
+    let area = centered_rect(78, 82, screen_area);
+    f.render_widget(Clear, area);
+
+    let modal_block = Block::default()
+        .title(" ◈ Workspace Configuration ")
+        .borders(Borders::ALL)
+        .border_type(BorderType::Thick)
+        .border_style(Style::default().fg(Color::Yellow));
+    let inner_area = modal_block.inner(area);
+    f.render_widget(modal_block, area);
+
+    render_config_tab(f, app, inner_area);
 }
 
 // ==========================================
@@ -232,18 +243,21 @@ fn render_create_tab(f: &mut Frame, app: &mut App, area: Rect) {
     let right_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(if is_client { 12 } else { 11 }), // Project Details Form
+            Constraint::Length(if is_client { 11 } else { 10 }), // Project Details Form
             Constraint::Min(6),                                  // Expansive Structure Preview
         ])
         .split(chunks[1]);
 
     let licenses = ["MIT", "Apache-2.0", "BSD-3-Clause", "Unlicense", "None"];
 
-    let path_display = if app.create_custom_path.len() > 50 {
-        format!("...{}", &app.create_custom_path[app.create_custom_path.len() - 47..])
-    } else {
-        app.create_custom_path.clone()
-    };
+    let author_idx = if is_client { 3 } else { 2 };
+    let lic_idx = if is_client { 4 } else { 3 };
+    let git_idx = if is_client { 5 } else { 4 };
+    let btn_idx = if is_client { 6 } else { 5 };
+
+    let is_editing_title = app.create_field_idx == 1 && app.is_input_editing;
+    let is_editing_client = app.create_field_idx == 2 && app.is_input_editing && is_client;
+    let is_editing_author = app.create_field_idx == author_idx && app.is_input_editing;
 
     let mut form_lines = vec![
         Line::from(vec![
@@ -268,11 +282,6 @@ fn render_create_tab(f: &mut Frame, app: &mut App, area: Rect) {
             } else {
                 Span::styled(" Resource ", Style::default().fg(Color::DarkGray))
             },
-            Span::styled(" (Space)", Style::default().fg(Color::DarkGray)),
-        ]),
-        Line::from(vec![
-            Span::styled("  Path:     ", Style::default().fg(Color::DarkGray)),
-            Span::styled(path_display, Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
         ]),
         Line::from(vec![
             Span::styled(
@@ -280,13 +289,20 @@ fn render_create_tab(f: &mut Frame, app: &mut App, area: Rect) {
                 if app.create_field_idx == 1 { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
             ),
             Span::styled(
-                &app.create_project_name,
-                if app.create_field_idx == 1 {
+                if is_editing_title { format!("{}_", app.create_project_name) } else { app.create_project_name.clone() },
+                if is_editing_title {
+                    Style::default().fg(Color::Yellow).bg(Color::Rgb(40, 50, 70)).add_modifier(Modifier::BOLD)
+                } else if app.create_field_idx == 1 {
                     Style::default().fg(Color::White).bg(Color::DarkGray).add_modifier(Modifier::UNDERLINED)
                 } else {
                     Style::default().fg(Color::White)
                 },
             ),
+            if is_editing_title {
+                Span::styled(" ● [EDITING]", Style::default().fg(Color::Yellow))
+            } else {
+                Span::raw("")
+            },
         ]),
     ];
 
@@ -297,20 +313,22 @@ fn render_create_tab(f: &mut Frame, app: &mut App, area: Rect) {
                 if app.create_field_idx == 2 { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
             ),
             Span::styled(
-                &app.create_client_name,
-                if app.create_field_idx == 2 {
+                if is_editing_client { format!("{}_", app.create_client_name) } else { app.create_client_name.clone() },
+                if is_editing_client {
+                    Style::default().fg(Color::Yellow).bg(Color::Rgb(40, 50, 70)).add_modifier(Modifier::BOLD)
+                } else if app.create_field_idx == 2 {
                     Style::default().fg(Color::White).bg(Color::DarkGray).add_modifier(Modifier::UNDERLINED)
                 } else {
                     Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
                 },
             ),
+            if is_editing_client {
+                Span::styled(" ● [EDITING]", Style::default().fg(Color::Yellow))
+            } else {
+                Span::raw("")
+            },
         ]));
     }
-
-    let author_idx = if is_client { 3 } else { 2 };
-    let lic_idx = if is_client { 4 } else { 3 };
-    let git_idx = if is_client { 5 } else { 4 };
-    let btn_idx = if is_client { 6 } else { 5 };
 
     form_lines.push(Line::from(vec![
         Span::styled(
@@ -318,13 +336,20 @@ fn render_create_tab(f: &mut Frame, app: &mut App, area: Rect) {
             if app.create_field_idx == author_idx { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
         ),
         Span::styled(
-            &app.create_author,
-            if app.create_field_idx == author_idx {
+            if is_editing_author { format!("{}_", app.create_author) } else { app.create_author.clone() },
+            if is_editing_author {
+                Style::default().fg(Color::Yellow).bg(Color::Rgb(40, 50, 70)).add_modifier(Modifier::BOLD)
+            } else if app.create_field_idx == author_idx {
                 Style::default().fg(Color::White).bg(Color::DarkGray).add_modifier(Modifier::UNDERLINED)
             } else {
                 Style::default().fg(Color::White)
             },
         ),
+        if is_editing_author {
+            Span::styled(" ● [EDITING]", Style::default().fg(Color::Yellow))
+        } else {
+            Span::raw("")
+        },
     ]));
 
     form_lines.push(Line::from(vec![
@@ -336,7 +361,6 @@ fn render_create_tab(f: &mut Frame, app: &mut App, area: Rect) {
             format!("< {} >", licenses[app.create_license_idx % licenses.len()]),
             Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
         ),
-        Span::styled(" (Space)", Style::default().fg(Color::DarkGray)),
     ]));
 
     form_lines.push(Line::from(vec![
@@ -348,20 +372,18 @@ fn render_create_tab(f: &mut Frame, app: &mut App, area: Rect) {
             if app.create_init_git { "[X] Initialize Git Repo" } else { "[ ] No Git" },
             Style::default().fg(if app.create_init_git { Color::Green } else { Color::DarkGray }).add_modifier(Modifier::BOLD),
         ),
-        Span::styled(" (Space)", Style::default().fg(Color::DarkGray)),
     ]));
 
     form_lines.push(Line::from(""));
     form_lines.push(Line::from(vec![
         Span::styled(
-            if app.create_field_idx == btn_idx { "▶ [ CREATE & SEED PROJECT NOW ] " } else { "  [ CREATE & SEED PROJECT NOW ] " },
+            if app.create_field_idx == btn_idx { "▶ [ CREATE & SEED PROJECT NOW ]" } else { "  [ CREATE & SEED PROJECT NOW ]" },
             if app.create_field_idx == btn_idx {
                 Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD)
             } else {
                 Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)
             },
         ),
-        Span::styled(" (Enter)", Style::default().fg(Color::DarkGray)),
     ]));
 
     let form_block = Block::default()
@@ -410,7 +432,21 @@ fn render_create_tab(f: &mut Frame, app: &mut App, area: Rect) {
         }
         tpl_spans.push(Span::styled(format!(" - {}", tpl.description), Style::default().fg(Color::White)));
 
+        let path_display = if let Ok(home) = std::env::var("HOME") {
+            if app.create_custom_path.starts_with(&home) {
+                format!("~{}", &app.create_custom_path[home.len()..])
+            } else {
+                app.create_custom_path.clone()
+            }
+        } else {
+            app.create_custom_path.clone()
+        };
+
         let mut preview_lines = vec![
+            Line::from(vec![
+                Span::styled("Project Path: ", Style::default().fg(Color::DarkGray)),
+                Span::styled(path_display, Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            ]),
             Line::from(tpl_spans),
         ];
 
@@ -527,7 +563,7 @@ fn render_view_projects_tab(f: &mut Frame, app: &mut App, area: Rect) {
 
     let filter_box = Paragraph::new(filter_lines).block(
         Block::default()
-            .title(" ◉ Filter [←/→] • [/] Search • [N] New Project ")
+            .title(" ◉ Category Filter ")
             .borders(Borders::ALL)
             .border_type(BorderType::Plain)
             .border_style(Style::default().fg(Color::Cyan)),
@@ -571,6 +607,11 @@ fn render_view_projects_tab(f: &mut Frame, app: &mut App, area: Rect) {
                 };
 
                 let mut spans = Vec::new();
+                let is_pinned = app.config.is_pinned_project(&p.name);
+                if is_pinned {
+                    spans.push(Span::styled("★ ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)));
+                }
+
                 if use_nf {
                     let p_icon = crate::icons::project_icon(&p.detected_type, true);
                     if !p_icon.is_empty() {
@@ -578,8 +619,19 @@ fn render_view_projects_tab(f: &mut Frame, app: &mut App, area: Rect) {
                     }
                 }
 
+                // Git status indicator
+                match p.git_status {
+                    crate::utils::GitRepoStatus::Clean => {
+                        spans.push(Span::styled("✓ ", Style::default().fg(Color::Green)));
+                    }
+                    crate::utils::GitRepoStatus::Modified => {
+                        spans.push(Span::styled("● ", Style::default().fg(Color::Yellow)));
+                    }
+                    crate::utils::GitRepoStatus::NotRepo => {}
+                }
+
                 spans.push(Span::styled(
-                    format!("{:<17} ", p.name),
+                    format!("{:<15} ", p.name),
                     if is_sel {
                         Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
                     } else {
@@ -604,7 +656,11 @@ fn render_view_projects_tab(f: &mut Frame, app: &mut App, area: Rect) {
     let projects_list_widget = List::new(project_items)
         .block(
             Block::default()
-                .title(format!(" ▸ Workspace Projects ({}) [↑/↓ Navigate] ", filtered.len()))
+                .title(format!(
+                    " ▸ Workspace Projects ({}) [Sort: {}] ",
+                    filtered.len(),
+                    app.sort_mode.label()
+                ))
                 .borders(Borders::ALL)
                 .border_type(BorderType::Plain)
                 .border_style(Style::default().fg(Color::Cyan)),
@@ -628,6 +684,38 @@ fn render_view_projects_tab(f: &mut Frame, app: &mut App, area: Rect) {
             ProjectCategory::Archive(y) => (y.as_str(), Color::DarkGray),
         };
 
+        let path_str = if let Ok(home) = std::env::var("HOME") {
+            let p_str = proj.path.display().to_string();
+            if p_str.starts_with(&home) {
+                format!("~{}", &p_str[home.len()..])
+            } else {
+                p_str
+            }
+        } else {
+            proj.path.display().to_string()
+        };
+
+        let (git_badge, git_col) = match proj.git_status {
+            crate::utils::GitRepoStatus::Clean => ("✓ Clean (Up to date)", Color::Green),
+            crate::utils::GitRepoStatus::Modified => ("● Uncommitted Changes", Color::Yellow),
+            crate::utils::GitRepoStatus::NotRepo => ("No Git Repo", Color::DarkGray),
+        };
+
+        let health_color = if proj.health_score >= 90 {
+            Color::Green
+        } else if proj.health_score >= 70 {
+            Color::Yellow
+        } else {
+            Color::Red
+        };
+
+        let last_mod_str = crate::utils::format_relative_time(proj.last_modified);
+        let created_str = match proj.created_at {
+            Some(time) => crate::utils::format_date_time(time),
+            None => "Unknown".to_string(),
+        };
+        let is_proj_pinned = app.config.is_pinned_project(&proj.name);
+
         let mut detail_lines = vec![
             Line::from(vec![
                 Span::styled("Title:   ", Style::default().fg(Color::DarkGray)),
@@ -637,19 +725,50 @@ fn render_view_projects_tab(f: &mut Frame, app: &mut App, area: Rect) {
                 Span::raw("   "),
                 Span::styled("Stack: ", Style::default().fg(Color::DarkGray)),
                 Span::styled(&proj.detected_type, Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+                Span::raw("   "),
+                Span::styled(if is_proj_pinned { "★ Pinned to Top" } else { "" }, Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
             ]),
             Line::from(vec![
                 Span::styled("Path:    ", Style::default().fg(Color::DarkGray)),
-                Span::styled(proj.path.display().to_string(), Style::default().fg(Color::Cyan)),
+                Span::styled(path_str, Style::default().fg(Color::Cyan)),
             ]),
             Line::from(vec![
                 Span::styled("Content: ", Style::default().fg(Color::DarkGray)),
                 Span::raw(format!("{} files, {} directories ({})", proj.file_count, proj.dir_count, crate::tree::format_size(proj.total_bytes))),
             ]),
-            Line::from(""),
-            Line::from(Span::styled("README (easy to read & update):", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))),
+            Line::from(vec![
+                Span::styled("Created: ", Style::default().fg(Color::DarkGray)),
+                Span::styled(created_str, Style::default().fg(Color::White)),
+                Span::raw("   "),
+                Span::styled("Modified: ", Style::default().fg(Color::DarkGray)),
+                Span::styled(last_mod_str, Style::default().fg(Color::White)),
+            ]),
+            Line::from(vec![
+                Span::styled("Git:     ", Style::default().fg(Color::DarkGray)),
+                Span::styled(git_badge, Style::default().fg(git_col).add_modifier(Modifier::BOLD)),
+                Span::raw("   "),
+                Span::styled("Health: ", Style::default().fg(Color::DarkGray)),
+                Span::styled(format!("{}%", proj.health_score), Style::default().fg(health_color).add_modifier(Modifier::BOLD)),
+            ]),
         ];
+
         let use_nf = app.config.use_nerd_font();
+
+        if !proj.preview_files.is_empty() {
+            detail_lines.push(Line::from(""));
+            detail_lines.push(Line::from(Span::styled("Recent Project Files:", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))));
+            for f in proj.preview_files.iter().take(5) {
+                let f_icon = crate::icons::file_icon(Path::new(f), use_nf);
+                detail_lines.push(Line::from(vec![
+                    Span::styled(format!("  {} ", f_icon.trim()), Style::default().fg(Color::Green)),
+                    Span::styled(f, Style::default().fg(Color::White)),
+                ]));
+            }
+        }
+
+        detail_lines.push(Line::from(""));
+        detail_lines.push(Line::from(Span::styled("README Preview:", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))));
+
         let mut readme_found: Option<String> = None;
         for f in &proj.preview_files {
             let n = f.to_lowercase();
@@ -678,7 +797,7 @@ fn render_view_projects_tab(f: &mut Frame, app: &mut App, area: Rect) {
                     .lines()
                     .map(|l| l.trim())
                     .filter(|l| !l.is_empty())
-                    .take(3)
+                    .take(4)
                     .collect();
                 for s in snippet_lines {
                     let truncated = if s.len() > 60 { format!("{}...", &s[..57]) } else { s.to_string() };
@@ -688,57 +807,24 @@ fn render_view_projects_tab(f: &mut Frame, app: &mut App, area: Rect) {
                     ]));
                 }
             }
-            detail_lines.push(Line::from(vec![
-                Span::styled("    ", Style::default()),
-                Span::styled("Press [E] to edit in TUI Markdown Editor, or [O / Enter] to open folder.", Style::default().fg(Color::DarkGray)),
-            ]));
         } else {
             detail_lines.push(Line::from(vec![
                 Span::styled("  (No README found in this project)", Style::default().fg(Color::DarkGray)),
             ]));
-            detail_lines.push(Line::from(vec![
-                Span::styled("    ", Style::default()),
-                Span::styled("Press [E] to create README with built-in Markdown Editor.", Style::default().fg(Color::DarkGray)),
-            ]));
         }
-
-        detail_lines.push(Line::from(""));
-        detail_lines.push(Line::from(Span::styled("Actions:", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))));
-        detail_lines.push(Line::from(vec![
-            Span::styled(" [E] ", Style::default().fg(Color::Black).bg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Edit README  "),
-            Span::styled(" [O / Enter] ", Style::default().fg(Color::Black).bg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Open Folder  "),
-            Span::styled(" [N] ", Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD)),
-            Span::raw(" New Project  "),
-        ]));
-        detail_lines.push(Line::from(vec![
-            Span::styled(" [D] ", Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD)),
-            Span::raw(" Doctor Health  "),
-            Span::styled(" [T] ", Style::default().fg(Color::Black).bg(Color::Blue).add_modifier(Modifier::BOLD)),
-            Span::raw(" Directory Tree  "),
-        ]));
-        detail_lines.push(Line::from(vec![
-            Span::styled(" [A] ", Style::default().fg(Color::Black).bg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::raw(" Archive Project  "),
-            Span::styled(" [/] ", Style::default().fg(Color::Black).bg(Color::Magenta).add_modifier(Modifier::BOLD)),
-            Span::raw(" Search  "),
-            Span::styled(" [R] ", Style::default().fg(Color::Black).bg(Color::White).add_modifier(Modifier::BOLD)),
-            Span::raw(" Refresh"),
-        ]));
 
         let card_box = Paragraph::new(detail_lines)
             .wrap(Wrap { trim: true })
             .block(
                 Block::default()
-                    .title(" ◈ Selected Project Details & Actions ")
+                    .title(" ◈ Selected Project Details ")
                     .borders(Borders::ALL)
                     .border_type(BorderType::Plain)
                     .border_style(Style::default().fg(Color::Cyan)),
             );
         f.render_widget(card_box, chunks[1]);
     } else {
-        let empty_box = Paragraph::new(if show_search { "No projects match your active search query.\nPress Esc to reset search." } else { "No projects found in this category.\nUse Tab 2 to create your first project!" }).block(
+        let empty_box = Paragraph::new(if show_search { "No projects match your active search query.\nPress Esc to reset search." } else { "No projects found in this category." }).block(
             Block::default()
                 .title(" Project Overview ")
                 .borders(Borders::ALL)
@@ -749,255 +835,21 @@ fn render_view_projects_tab(f: &mut Frame, app: &mut App, area: Rect) {
 }
 
 // ==========================================
-// TAB 2: TEMPLATES SECTION
-// ==========================================
-fn render_templates_tab(f: &mut Frame, app: &mut App, area: Rect) {
-    let chunks = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(34), Constraint::Percentage(66)])
-        .split(area);
-
-    let left_chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(3), // Type Filter Bar: [All] [Preset] [Manual]
-            Constraint::Min(6),    // List of templates
-        ])
-        .split(chunks[0]);
-
-    let preset_count = app.templates.iter().filter(|t| t.is_preset()).count();
-    let manual_count = app.templates.iter().filter(|t| t.is_manual()).count();
-    let filters = [
-        format!("All ({})", app.templates.len()),
-        format!("Preset ({})", preset_count),
-        format!("Manual ({})", manual_count),
-    ];
-
-    let filter_spans: Vec<Span> = filters
-        .iter()
-        .enumerate()
-        .flat_map(|(i, name)| {
-            let is_sel = i == app.templates_filter_idx;
-            vec![
-                if is_sel {
-                    Span::styled(
-                        format!("▸[{}]◂", name),
-                        Style::default().fg(Color::Black).bg(Color::Cyan).add_modifier(Modifier::BOLD),
-                    )
-                } else {
-                    Span::styled(format!("  {}  ", name), Style::default().fg(Color::DarkGray))
-                },
-                Span::raw(" "),
-            ]
-        })
-        .collect();
-
-    let filter_box = Paragraph::new(Line::from(filter_spans)).block(
-        Block::default()
-            .title(" ◉ Filter [←/→] • [M] New Manual ")
-            .borders(Borders::ALL)
-            .border_type(BorderType::Plain)
-            .border_style(Style::default().fg(Color::Cyan)),
-    );
-    f.render_widget(filter_box, left_chunks[0]);
-
-    let use_nf = app.config.use_nerd_font();
-    let filtered = app.filtered_templates_for_view();
-
-    let items: Vec<ListItem> = if filtered.is_empty() {
-        vec![ListItem::new(Line::from("  No manual templates found.\n  Press [M] to create one or [C] to capture!"))
-            .style(Style::default().fg(Color::DarkGray))]
-    } else {
-        filtered
-            .iter()
-            .enumerate()
-            .map(|(i, &(_, t))| {
-                let is_sel = i == app.templates_view_idx;
-                let is_fav = app.config.is_favorite(&t.name);
-                let mut spans = Vec::new();
-                spans.push(Span::styled(
-                    format!("{:<14} ", t.name),
-                    if is_sel {
-                        Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)
-                    } else if is_fav {
-                        Style::default().fg(Color::Yellow)
-                    } else {
-                        Style::default().fg(Color::White)
-                    },
-                ));
-                if t.is_manual() {
-                    spans.push(Span::styled("[Manual] ", Style::default().fg(Color::Magenta)));
-                } else {
-                    spans.push(Span::styled("[Preset] ", Style::default().fg(Color::Cyan)));
-                }
-                spans.push(Span::styled(format!("(v{})", t.version), Style::default().fg(Color::DarkGray)));
-                if is_fav {
-                    spans.push(Span::raw(" "));
-                    spans.push(Span::styled(
-                        crate::icons::fav_badge(true, use_nf).trim(),
-                        Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
-                    ));
-                }
-                ListItem::new(Line::from(spans))
-            })
-            .collect()
-    };
-
-    let mut state = ListState::default();
-    if !filtered.is_empty() {
-        state.select(Some(app.templates_view_idx));
-    }
-
-    let list = List::new(items)
-        .block(
-            Block::default()
-                .title(format!(" ▶ Template Library ({}) [↑/↓ | M: New | F: Fav | C: Capture] ", filtered.len()))
-                .borders(Borders::ALL)
-                .border_type(BorderType::Plain)
-                .border_style(Style::default().fg(Color::Cyan)),
-        )
-        .highlight_style(
-            Style::default()
-                .bg(Color::Rgb(30, 45, 60))
-                .add_modifier(Modifier::BOLD),
-        )
-        .highlight_symbol("▶ ");
-    f.render_stateful_widget(list, left_chunks[1], &mut state);
-
-    if let Some(&(_, tpl)) = filtered.get(app.templates_view_idx) {
-        let is_fav = app.config.is_favorite(&tpl.name);
-        let mut name_spans = vec![
-            Span::styled("Template Name: ", Style::default().fg(Color::DarkGray)),
-            Span::styled(&tpl.name, Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-            Span::styled(format!(" (version: {})", tpl.version), Style::default().fg(Color::DarkGray)),
-        ];
-        if is_fav {
-            let fav_badge = crate::icons::fav_badge(true, use_nf).trim();
-            name_spans.push(Span::raw(" "));
-            name_spans.push(Span::styled(
-                format!("{} [FAVORITE PINNED TO TOP]", fav_badge),
-                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
-            ));
-        }
-
-        let mut lines = vec![
-            Line::from(name_spans),
-            Line::from(vec![
-                Span::styled("Category Type: ", Style::default().fg(Color::DarkGray)),
-                if tpl.is_manual() {
-                    Span::styled("[MANUAL TEMPLATE - Custom User Definition]", Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD))
-                } else {
-                    Span::styled("[PRESET TEMPLATE - Built-in Output Workflow]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
-                },
-            ]),
-        ];
-
-        if let Some(ref path) = tpl.source_path {
-            lines.push(Line::from(vec![
-                Span::styled("Template File: ", Style::default().fg(Color::DarkGray)),
-                Span::styled(path, Style::default().fg(Color::Yellow)),
-            ]));
-        }
-
-        lines.push(Line::from(vec![
-            Span::styled("Description:   ", Style::default().fg(Color::DarkGray)),
-            Span::raw(&tpl.description),
-        ]));
-
-        if !tpl.outputs.is_empty() {
-            lines.push(Line::from(""));
-            lines.push(Line::from(Span::styled("Target Deliverables & Outputs:", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))));
-            for out in &tpl.outputs {
-                lines.push(Line::from(vec![
-                    Span::styled("  • ", Style::default().fg(Color::Cyan)),
-                    Span::styled(out, Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
-                ]));
-            }
-        }
-
-        lines.push(Line::from(""));
-        lines.push(Line::from(Span::styled("Variables & Placeholders:", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))));
-
-        if tpl.variables.is_empty() {
-            lines.push(Line::from("  • None"));
-        } else {
-            for (k, v) in &tpl.variables {
-                lines.push(Line::from(vec![
-                    Span::styled(format!("  • {{{{ {} }}}}: ", k), Style::default().fg(Color::Yellow)),
-                    Span::raw(v),
-                ]));
-            }
-        }
-
-        lines.push(Line::from(""));
-        lines.push(Line::from(Span::styled(format!("Directories ({}):", tpl.directories.len()), Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD))));
-        let d_icon = crate::icons::folder_icon(use_nf);
-        for d in &tpl.directories {
-            lines.push(Line::from(vec![
-                Span::styled(format!("  {} ", d_icon.trim()), Style::default().fg(Color::Blue)),
-                Span::raw(format!("{}/", d)),
-            ]));
-        }
-
-        lines.push(Line::from(""));
-        lines.push(Line::from(Span::styled(format!("Files ({}):", tpl.files.len()), Style::default().fg(Color::Green).add_modifier(Modifier::BOLD))));
-        for f in &tpl.files {
-            let f_icon = crate::icons::file_icon(Path::new(&f.path), use_nf);
-            lines.push(Line::from(vec![
-                Span::styled(format!("  {} ", f_icon.trim()), Style::default().fg(Color::Green)),
-                Span::styled(format!("{:<30} ", f.path), Style::default().fg(Color::White)),
-                if f.required {
-                    Span::styled("[required]", Style::default().fg(Color::Yellow))
-                } else {
-                    Span::styled("[optional]", Style::default().fg(Color::DarkGray))
-                },
-            ]));
-        }
-
-        lines.push(Line::from(""));
-        lines.push(Line::from(vec![
-            Span::styled(" [M] ", Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD)),
-            Span::raw(" New manual template    "),
-            Span::styled(" [F] ", Style::default().fg(Color::Black).bg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::raw(if is_fav { " Unpin fav" } else { " Pin fav" }),
-            Span::raw("    "),
-            Span::styled(" [C] ", Style::default().fg(Color::Black).bg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Capture folder    "),
-            Span::styled(" [←/→] ", Style::default().fg(Color::Black).bg(Color::White).add_modifier(Modifier::BOLD)),
-            Span::raw(" Filter Preset/Manual"),
-        ]));
-
-        let detail_box = Paragraph::new(lines)
-            .wrap(Wrap { trim: true })
-            .block(
-                Block::default()
-                    .title(" Template Specification & Files ")
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Plain),
-            );
-        f.render_widget(detail_box, chunks[1]);
-    } else {
-        let empty_box = Paragraph::new("No templates match the active filter.\nPress [←/→] to switch between All, Preset, and Manual templates,\nor press [M] to create a new manual template!").block(
-            Block::default()
-                .title(" Template Overview ")
-                .borders(Borders::ALL)
-                .border_type(BorderType::Plain),
-        );
-        f.render_widget(empty_box, chunks[1]);
-    }
-}
-
-// ==========================================
-// TAB 3: CONFIG & PROJECT PATHS
+// WORKSPACE CONFIGURATION & PROJECT PATHS
 // ==========================================
 fn render_config_tab(f: &mut Frame, app: &mut App, area: Rect) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(16), // Compact & clean Config Form
+            Constraint::Length(18), // Expansive Config Form with Template Folder Path
             Constraint::Min(8),     // Workspace architecture guidelines
         ])
         .split(area);
+
+    let is_editing_ws = app.config_field_idx == 0 && app.is_input_editing;
+    let is_editing_tpl_dir = app.config_field_idx == 1 && app.is_input_editing;
+    let is_editing_author = app.config_field_idx == 2 && app.is_input_editing;
+    let is_editing_tpl = app.config_field_idx == 4 && app.is_input_editing;
 
     let form_lines = vec![
         Line::from(vec![
@@ -1006,13 +858,41 @@ fn render_config_tab(f: &mut Frame, app: &mut App, area: Rect) {
                 if app.config_field_idx == 0 { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
             ),
             Span::styled(
-                &app.config.workspace_root,
-                if app.config_field_idx == 0 {
+                if is_editing_ws { format!("{}_", app.config.workspace_root) } else { app.config.workspace_root.clone() },
+                if is_editing_ws {
+                    Style::default().fg(Color::Yellow).bg(Color::Rgb(40, 50, 70)).add_modifier(Modifier::BOLD)
+                } else if app.config_field_idx == 0 {
                     Style::default().fg(Color::White).bg(Color::DarkGray).add_modifier(Modifier::UNDERLINED)
                 } else {
                     Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
                 },
             ),
+            if is_editing_ws {
+                Span::styled(" ● [EDITING]", Style::default().fg(Color::Yellow))
+            } else {
+                Span::raw("")
+            },
+        ]),
+        Line::from(vec![
+            Span::styled(
+                if app.config_field_idx == 1 { "▶ Custom Templates Folder Path:   " } else { "  Custom Templates Folder Path:   " },
+                if app.config_field_idx == 1 { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
+            ),
+            Span::styled(
+                if is_editing_tpl_dir { format!("{}_", app.config.custom_templates_dir) } else { app.config.custom_templates_dir.clone() },
+                if is_editing_tpl_dir {
+                    Style::default().fg(Color::Yellow).bg(Color::Rgb(40, 50, 70)).add_modifier(Modifier::BOLD)
+                } else if app.config_field_idx == 1 {
+                    Style::default().fg(Color::White).bg(Color::DarkGray).add_modifier(Modifier::UNDERLINED)
+                } else {
+                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+                },
+            ),
+            if is_editing_tpl_dir {
+                Span::styled(" ● [EDITING]", Style::default().fg(Color::Yellow))
+            } else {
+                Span::raw("")
+            },
         ]),
         Line::from(vec![
             Span::styled("   Standard Subfolders:            ", Style::default().fg(Color::DarkGray)),
@@ -1022,50 +902,63 @@ fn render_config_tab(f: &mut Frame, app: &mut App, area: Rect) {
         Line::from(""),
         Line::from(vec![
             Span::styled(
-                if app.config_field_idx == 1 { "▶ Default Author Name:            " } else { "  Default Author Name:            " },
-                if app.config_field_idx == 1 { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
+                if app.config_field_idx == 2 { "▶ Default Author Name:            " } else { "  Default Author Name:            " },
+                if app.config_field_idx == 2 { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
             ),
             Span::styled(
-                &app.config.default_author,
-                if app.config_field_idx == 1 {
+                if is_editing_author { format!("{}_", app.config.default_author) } else { app.config.default_author.clone() },
+                if is_editing_author {
+                    Style::default().fg(Color::Yellow).bg(Color::Rgb(40, 50, 70)).add_modifier(Modifier::BOLD)
+                } else if app.config_field_idx == 2 {
                     Style::default().fg(Color::White).bg(Color::DarkGray).add_modifier(Modifier::UNDERLINED)
                 } else {
                     Style::default().fg(Color::White)
                 },
             ),
+            if is_editing_author {
+                Span::styled(" ● [EDITING]", Style::default().fg(Color::Yellow))
+            } else {
+                Span::raw("")
+            },
         ]),
         Line::from(""),
         Line::from(vec![
             Span::styled(
-                if app.config_field_idx == 2 { "▶ Default License:                " } else { "  Default License:                " },
-                if app.config_field_idx == 2 { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
+                if app.config_field_idx == 3 { "▶ Default License:                " } else { "  Default License:                " },
+                if app.config_field_idx == 3 { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
             ),
             Span::styled(
                 format!("< {} >", app.config.default_license),
                 Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
             ),
-            Span::styled(" (Press Space to cycle)", Style::default().fg(Color::DarkGray)),
         ]),
         Line::from(""),
         Line::from(vec![
             Span::styled(
-                if app.config_field_idx == 3 { "▶ Default Template:               " } else { "  Default Template:               " },
-                if app.config_field_idx == 3 { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
+                if app.config_field_idx == 4 { "▶ Default Template:               " } else { "  Default Template:               " },
+                if app.config_field_idx == 4 { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
             ),
             Span::styled(
-                &app.config.default_template,
-                if app.config_field_idx == 3 {
+                if is_editing_tpl { format!("{}_", app.config.default_template) } else { app.config.default_template.clone() },
+                if is_editing_tpl {
+                    Style::default().fg(Color::Yellow).bg(Color::Rgb(40, 50, 70)).add_modifier(Modifier::BOLD)
+                } else if app.config_field_idx == 4 {
                     Style::default().fg(Color::White).bg(Color::DarkGray).add_modifier(Modifier::UNDERLINED)
                 } else {
                     Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)
                 },
             ),
+            if is_editing_tpl {
+                Span::styled(" ● [EDITING]", Style::default().fg(Color::Yellow))
+            } else {
+                Span::raw("")
+            },
         ]),
         Line::from(vec![
             Span::styled("   Favorite Templates (Pinned):    ", Style::default().fg(Color::DarkGray)),
             Span::styled(
                 if app.config.favorite_templates.is_empty() {
-                    "None (Press [F] on any template to pin to top)".to_string()
+                    "None".to_string()
                 } else {
                     app.config.favorite_templates.join(", ")
                 },
@@ -1075,35 +968,35 @@ fn render_config_tab(f: &mut Frame, app: &mut App, area: Rect) {
         Line::from(""),
         Line::from(vec![
             Span::styled(
-                if app.config_field_idx == 4 { "▶ Icon Mode (Glyph System):     " } else { "  Icon Mode (Glyph System):     " },
-                if app.config_field_idx == 4 { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
+                if app.config_field_idx == 5 { "▶ Icon Mode (Glyph System):     " } else { "  Icon Mode (Glyph System):     " },
+                if app.config_field_idx == 5 { Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::DarkGray) },
             ),
             Span::styled(
                 format!("< {} >", app.config.icon_mode),
                 Style::default().fg(if app.config.use_nerd_font() { Color::Green } else { Color::Yellow }).add_modifier(Modifier::BOLD),
             ),
             Span::styled(
-                if app.config.use_nerd_font() { " (Nerd Font enabled - pure Rust UTF-8 glyphs, Space to cycle)" } else { " (Clean ASCII - universal terminal compatibility, Space to cycle)" },
+                if app.config.use_nerd_font() { " (Nerd Font enabled - pure Rust UTF-8 glyphs)" } else { " (Clean ASCII - universal terminal compatibility)" },
                 Style::default().fg(Color::DarkGray),
             ),
         ]),
         Line::from(""),
         Line::from(vec![
             Span::styled(
-                if app.config_field_idx == 5 { "▶ [ SAVE CONFIGURATION (or Ctrl+S) ] " } else { "  [ SAVE CONFIGURATION (or Ctrl+S) ] " },
-                if app.config_field_idx == 5 { Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::Green) },
+                if app.config_field_idx == 6 { "▶ [ SAVE CONFIGURATION ] " } else { "  [ SAVE CONFIGURATION ] " },
+                if app.config_field_idx == 6 { Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::Green) },
             ),
             Span::raw("   "),
             Span::styled(
-                if app.config_field_idx == 6 { "▶ [ INITIALIZE MASTER WORKSPACE ] " } else { "  [ INITIALIZE MASTER WORKSPACE ] " },
-                if app.config_field_idx == 6 { Style::default().fg(Color::Black).bg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::Cyan) },
+                if app.config_field_idx == 7 { "▶ [ INITIALIZE MASTER WORKSPACE ] " } else { "  [ INITIALIZE MASTER WORKSPACE ] " },
+                if app.config_field_idx == 7 { Style::default().fg(Color::Black).bg(Color::Cyan).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::Cyan) },
             ),
         ]),
     ];
 
     let form_box = Paragraph::new(form_lines).block(
         Block::default()
-            .title(format!(" ▶ Configuration File: {} [↑/↓ to navigate, Space to cycle, Enter/Ctrl+S to save] ", crate::config::get_config_file_path().display()))
+            .title(format!(" ▶ Configuration File: {} ", crate::config::get_config_file_path().display()))
             .borders(Borders::ALL)
             .border_type(BorderType::Plain)
             .border_style(Style::default().fg(Color::Cyan)),
@@ -1192,78 +1085,54 @@ fn render_footer(f: &mut Frame, app: &App, area: Rect) {
 
     let key_hints = match app.current_tab {
         0 => Line::from(vec![
-            Span::styled("[?]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Help "),
-            Span::styled("[1-4]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Tabs "),
-            Span::styled("[↑/↓]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Select "),
+            Span::styled("[F]", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+            Span::raw(" Pin "),
+            Span::styled("[S]", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+            Span::raw(" Sort "),
+            Span::styled("[I]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::raw(" IDE "),
+            Span::styled("[$]", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+            Span::raw(" Shell "),
             Span::styled("[E]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Edit MD "),
+            Span::raw(" MD "),
             Span::styled("[O]", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
             Span::raw(" Open "),
-            Span::styled("[N]", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-            Span::raw(" New "),
             Span::styled("[D]", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
             Span::raw(" Doctor "),
-            Span::styled("[T]", Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD)),
+            Span::styled("[P]", Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD)),
             Span::raw(" Tree "),
             Span::styled("[A]", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
             Span::raw(" Archive "),
             Span::styled("[/]", Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
             Span::raw(" Search "),
+            Span::styled("[?]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::raw(" Help "),
             Span::styled("[q]", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
             Span::raw(" Quit"),
         ]),
         1 => Line::from(vec![
-            Span::styled("[?]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Help "),
-            Span::styled("[1-4]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Tabs "),
-            Span::styled("[←/→]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Filter "),
-            Span::styled("[F]", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::raw(" Fav "),
-            Span::styled("[↑/↓]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Field "),
-            Span::styled("[Space]", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-            Span::raw(" Select "),
+            Span::styled("[Esc]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::raw(" Close "),
+            Span::styled("[Tab]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::raw(" Next Field "),
             Span::styled("[Enter]", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-            Span::raw(" Create "),
-            Span::styled("[q]", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
-            Span::raw(" Quit"),
-        ]),
-        2 => Line::from(vec![
-            Span::styled("[?]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Help "),
-            Span::styled("[1-4]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Tabs "),
+            Span::raw(" Edit/Create "),
             Span::styled("[←/→]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Filter "),
-            Span::styled("[↑/↓]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Browse "),
-            Span::styled("[M]", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-            Span::raw(" Manual "),
+            Span::raw(" Options "),
             Span::styled("[F]", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::raw(" Fav "),
-            Span::styled("[C]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Capture "),
-            Span::styled("[q]", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
-            Span::raw(" Quit"),
+            Span::raw(" Fav"),
         ]),
         _ => Line::from(vec![
-            Span::styled("[?]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Help "),
-            Span::styled("[1-4]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw(" Tabs "),
-            Span::styled("[↑/↓]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled("[Esc]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::raw(" Close "),
+            Span::styled("[Tab]", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
             Span::raw(" Field "),
-            Span::styled("[Space]", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+            Span::styled("[Enter]", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+            Span::raw(" Edit/Save "),
+            Span::styled("[←/→/Space]", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
             Span::raw(" Cycle "),
             Span::styled("[Ctrl+S]", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-            Span::raw(" Save "),
-            Span::styled("[q]", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
-            Span::raw(" Quit"),
+            Span::raw(" Save"),
         ]),
     };
 
@@ -1416,7 +1285,7 @@ fn render_doctor_modal(f: &mut Frame, name: &str, report: &crate::maintainer::Au
     );
     f.render_widget(issues_widget, chunks[2]);
 
-    let close_hint = Paragraph::new("Press [Esc], [Enter], or [D] to close audit report")
+    let close_hint = Paragraph::new("[ Esc / Enter / D to close ]")
         .alignment(Alignment::Center)
         .style(Style::default().fg(Color::DarkGray));
     f.render_widget(close_hint, chunks[3]);
@@ -1436,7 +1305,7 @@ fn render_tree_modal(f: &mut Frame, name: &str, lines: &[String], scroll: usize)
 
     let tree_widget = List::new(visible_lines).block(
         Block::default()
-            .title(format!(" Directory Tree: {} (Lines {}-{}/{}) [↑/↓ scroll, Esc to close] ", name, scroll + 1, (scroll + max_lines).min(lines.len()), lines.len()))
+            .title(format!(" Directory Tree: {} (Lines {}-{}/{}) ", name, scroll + 1, (scroll + max_lines).min(lines.len()), lines.len()))
             .borders(Borders::ALL)
             .border_type(BorderType::Plain)
             .border_style(Style::default().fg(Color::Cyan)),
@@ -1453,13 +1322,13 @@ fn render_popup(f: &mut Frame, message: &str) {
     let is_warning = message.contains("[WARNING]") || message.contains("[!]");
 
     let (border_color, title) = if is_error {
-        (Color::Red, " ✕ ERROR ALERT (Press Space/Enter/Esc to close) ")
+        (Color::Red, " ✕ ERROR ")
     } else if is_ok {
-        (Color::Green, " ✓ SUCCESS (Press Space/Enter/Esc to close) ")
+        (Color::Green, " ✓ SUCCESS ")
     } else if is_warning {
-        (Color::Yellow, " ⚠ NOTICE (Press Space/Enter/Esc to close) ")
+        (Color::Yellow, " ⚠ NOTICE ")
     } else {
-        (Color::Cyan, " ◉ Notice (Press Space/Enter/Esc to close) ")
+        (Color::Cyan, " ◉ Notice ")
     };
 
     let popup = Paragraph::new(message)
@@ -1482,15 +1351,19 @@ fn render_help_modal(f: &mut Frame) {
     let lines = vec![
         Line::from(""),
         Line::from(vec![
-            Span::styled("  GLOBAL NAVIGATION & SHORTCUTS", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled("  UNIFIED WORKSPACE NAVIGATION & SHORTCUTS", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
         ]),
         Line::from(vec![
-            Span::styled("    [1] - [4]           ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::raw("Switch tabs (1: Projects, 2: New Project, 3: Templates, 4: Config)"),
+            Span::styled("    [N]                 ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+            Span::raw("Open New Project (Scaffold) modal to seed a project"),
         ]),
         Line::from(vec![
-            Span::styled("    [Tab] / [Shift+Tab] ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::raw("Navigate panes / form fields / section tabs"),
+            Span::styled("    [C]                 ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+            Span::raw("Open Workspace Settings / Configuration modal"),
+        ]),
+        Line::from(vec![
+            Span::styled("    [Esc]               ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::raw("Close any open modal and return to Workspace Dashboard"),
         ]),
         Line::from(vec![
             Span::styled("    [?] or [F1]         ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
@@ -1502,7 +1375,7 @@ fn render_help_modal(f: &mut Frame) {
         ]),
         Line::from(""),
         Line::from(vec![
-            Span::styled("  TAB 1: VIEW PROJECTS", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+            Span::styled("  WORKSPACE DASHBOARD (PROJECT EXPLORER)", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
         ]),
         Line::from(vec![
             Span::styled("    [↑ / ↓] or [k / j]  ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
@@ -1510,11 +1383,7 @@ fn render_help_modal(f: &mut Frame) {
         ]),
         Line::from(vec![
             Span::styled("    [← / →] or [h / l]  ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::raw("Cycle category filters (wrapping: All / Personal / Clients / ...)"),
-        ]),
-        Line::from(vec![
-            Span::styled("    [N]                 ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-            Span::raw("Quick jump to Tab 2 to scaffold a new project"),
+            Span::raw("Cycle category filters (All / Personal / Clients / Resources / Archive)"),
         ]),
         Line::from(vec![
             Span::styled("    [E]                 ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
@@ -1522,15 +1391,15 @@ fn render_help_modal(f: &mut Frame) {
         ]),
         Line::from(vec![
             Span::styled("    [O] or [Enter]      ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw("Open the project directory in your default system file manager"),
+            Span::raw("Open project directory in your default system file manager"),
         ]),
         Line::from(vec![
             Span::styled("    [D]                 ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
             Span::raw("Run Doctor health audit & view visual gauge score modal"),
         ]),
         Line::from(vec![
-            Span::styled("    [T]                 ", Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD)),
-            Span::raw("Interactive directory tree modal (use ↑/↓ or mouse wheel to scroll)"),
+            Span::styled("    [P] or [V]          ", Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD)),
+            Span::raw("Interactive directory tree modal (use ↑/↓ to scroll)"),
         ]),
         Line::from(vec![
             Span::styled("    [A]                 ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
@@ -1546,39 +1415,19 @@ fn render_help_modal(f: &mut Frame) {
         ]),
         Line::from(""),
         Line::from(vec![
-            Span::styled("  TAB 2: CREATE NEW PROJECT", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+            Span::styled("  MODAL DIALOG CONTROLS", Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
         ]),
         Line::from(vec![
-            Span::styled("    [← / →]             ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::raw("Filter template list by All / Preset / Manual"),
+            Span::styled("    [Tab] / [Shift+Tab] ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+            Span::raw("Navigate form fields / cycle section options"),
         ]),
         Line::from(vec![
-            Span::styled("    [↑ / ↓]             ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::raw("Select template in Pane 0, or switch form field in Pane 1"),
+            Span::styled("    [Enter]             ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+            Span::raw("Toggle edit mode on text fields, or submit action buttons"),
         ]),
         Line::from(vec![
             Span::styled("    [F]                 ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
             Span::raw("Pin / unpin template to top favorites"),
-        ]),
-        Line::from(vec![
-            Span::styled("    [Space]             ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::raw("Toggle Target Category, License type, or Git Initialization"),
-        ]),
-        Line::from(vec![
-            Span::styled("    [Tab / Enter]       ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw("Advance between template selector, fields, and create button"),
-        ]),
-        Line::from(""),
-        Line::from(vec![
-            Span::styled("  TAB 3: TEMPLATES & TAB 4: CONFIG", Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
-        ]),
-        Line::from(vec![
-            Span::styled("    [M]                 ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-            Span::raw("Open interactive Manual Template Creator modal"),
-        ]),
-        Line::from(vec![
-            Span::styled("    [C]                 ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::raw("Capture current folder structure into a reusable YAML template"),
         ]),
         Line::from(vec![
             Span::styled("    [Ctrl+S]            ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
@@ -1716,17 +1565,16 @@ fn render_manual_template_modal(f: &mut Frame, form: &super::ManualTemplateForm)
             } else {
                 Span::styled("[User Config: ~/.config/seed/templates/]", Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD))
             },
-            Span::styled(" (Space to toggle)", Style::default().fg(Color::DarkGray)),
         ]),
         Line::from(""),
         Line::from(vec![
             Span::styled(
-                if form.active_field == 6 { "▶ [ SAVE MANUAL TEMPLATE (Enter) ] " } else { "  [ SAVE MANUAL TEMPLATE (Enter) ] " },
+                if form.active_field == 6 { "▶ [ SAVE MANUAL TEMPLATE ] " } else { "  [ SAVE MANUAL TEMPLATE ] " },
                 if form.active_field == 6 { Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::Green) },
             ),
             Span::raw("    "),
             Span::styled(
-                if form.active_field == 7 { "▶ [ CANCEL (Esc) ] " } else { "  [ CANCEL (Esc) ] " },
+                if form.active_field == 7 { "▶ [ CANCEL ] " } else { "  [ CANCEL ] " },
                 if form.active_field == 7 { Style::default().fg(Color::Black).bg(Color::Red).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::Red) },
             ),
         ]),
@@ -1735,7 +1583,7 @@ fn render_manual_template_modal(f: &mut Frame, form: &super::ManualTemplateForm)
     let block = Paragraph::new(lines)
         .block(
             Block::default()
-                .title(" Create New Manual Template [Tab/↑/↓: Navigate, Enter/Ctrl+S: Save, Esc: Cancel] ")
+                .title(" ◈ Create New Manual Template ")
                 .borders(Borders::ALL)
                 .border_type(BorderType::Plain)
                 .border_style(Style::default().fg(Color::Cyan)),
@@ -1750,14 +1598,14 @@ fn render_markdown_editor_modal(f: &mut Frame, modal: &MarkdownEditorModal) {
     let (title, border_color) = match modal.mode {
         MarkdownModalMode::Preview => (
             format!(
-                " ◈ Markdown Document Viewer: {} (Preview Mode) [Tab: Edit, Esc/q: Close] ",
+                " ◈ Markdown Document Viewer: {} (Preview Mode) ",
                 modal.project_name
             ),
             Color::Cyan,
         ),
         MarkdownModalMode::Edit => (
             format!(
-                " ◈ Markdown Buffer Editor: {} {} [Tab: Preview, Ctrl+S: Save, Esc: Back] ",
+                " ◈ Markdown Buffer Editor: {} {} ",
                 modal.project_name,
                 if modal.is_dirty { "● [Modified]" } else { "✓ [Saved]" }
             ),
@@ -1980,4 +1828,35 @@ fn format_markdown_preview_line(raw: &str) -> Line<'static> {
             Span::styled(format!("  {}", raw), Style::default().fg(Color::White)),
         ])
     }
+}
+
+fn render_confirm_discard_modal(f: &mut Frame) {
+    let area = centered_rect(58, 24, f.area());
+    f.render_widget(Clear, area);
+    let block = Block::default()
+        .title(" ⚠ Unsaved Changes ")
+        .borders(Borders::ALL)
+        .border_type(BorderType::Double)
+        .border_style(Style::default().fg(Color::Yellow));
+
+    let text = vec![
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("  Warning: ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+            Span::styled("You have unsaved changes in this document!", Style::default().fg(Color::White)),
+        ]),
+        Line::from(Span::styled("  Discarding will lose recent edits made to this file.", Style::default().fg(Color::DarkGray))),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("  [Y] ", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
+            Span::styled("Discard Changes    ", Style::default().fg(Color::White)),
+            Span::styled("[S] ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+            Span::styled("Save & Exit    ", Style::default().fg(Color::White)),
+            Span::styled("[Esc/N] ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled("Keep Editing", Style::default().fg(Color::White)),
+        ]),
+        Line::from(""),
+    ];
+    let p = Paragraph::new(text).block(block);
+    f.render_widget(p, area);
 }

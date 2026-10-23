@@ -1,47 +1,19 @@
-use super::Template;
+use super::{Template, TemplateFile};
 use std::collections::HashMap;
 
 pub fn get_builtin_templates() -> Vec<Template> {
     vec![
-        // 1. Creative Media & Content Outputs
-        yt_video_template(),
-        podcast_template(),
-        music_template(),
-        photo_editing_template(),
-
-        // 2. Publishing, Documents & Career Outputs
-        book_template(),
-        newsletter_template(),
-        presentation_template(),
-        research_paper_template(),
-        portfolio_template(),
-
-        // 3. Design, 3D & Physical Fabrication Outputs
-        cad_maker_template(),
-        blender_3d_template(),
-        vector_design_template(),
-        creative_coding_template(),
-
-        // 4. Interactive & Client Deliverable Outputs
-        game_template(),
-        client_project_template(),
-
-        // 5. Software & Application Deliverable Outputs
-        react_template(),
-        fastapi_template(),
-        data_science_template(),
-        docker_template(),
-        docs_template(),
-        rust_template(),
-        python_template(),
-        go_template(),
-        cpp_template(),
-        c_template(),
-        java_template(),
-        bash_template(),
-        web_template(),
-        typescript_template(),
-        minimal_template(),
+        model_3d_template(),
+        cad_template(),
+        logo_template(),
+        video_edit_template(),
+        photo_edit_template(),
+        vector_artwork_template(),
+        webdesign_template(),
+        coding_template(),
+        audio_production_template(),
+        document_template(),
+        game_dev_template(),
     ]
 }
 
@@ -50,3857 +22,2117 @@ pub fn find_builtin_template(name: &str) -> Option<Template> {
     get_builtin_templates().into_iter().find(|t| {
         t.name.to_lowercase() == lower
             || match lower.as_str() {
-                // Output-focused Aliases
-                "podcast" | "pod" | "audio-show" => t.name == "podcast",
-                "book" | "novel" | "author" | "manuscript" | "ebook" => t.name == "book",
-                "game" | "gamedev" | "indie-game" | "godot" => t.name == "game",
-                "music" | "track" | "beat" | "album" | "audio" => t.name == "music",
-                "presentation" | "slides" | "deck" | "marp" | "keynote" => t.name == "presentation",
-                "research-paper" | "paper" | "latex" | "research" | "thesis" => t.name == "research-paper",
-                "newsletter" | "article" | "blog" | "substack" => t.name == "newsletter",
-                "portfolio" | "resume" | "cv" | "bio" => t.name == "portfolio",
-                "yt" | "video" | "youtube" | "content" => t.name == "yt-video",
-                "3d" | "blender" | "model" | "3d-model" => t.name == "3d-blender",
-                "cad" | "maker" | "3dprint" | "freecad" | "openscad" => t.name == "cad-maker",
-                "vector" | "design" | "inkscape" | "penpot" | "graphic" => t.name == "vector-design",
-                "photo" | "gimp" | "krita" | "darktable" => t.name == "photo-editing",
-                "creative" | "generative" | "shader" | "art" => t.name == "creative-coding",
-                "client" | "client-work" => t.name == "client-project",
-
-                // Software & Tool Aliases
-                "react" | "frontend" | "vite" | "next" => t.name == "react",
-                "fastapi" | "api" | "rest" | "backend" => t.name == "fastapi",
-                "ds" | "data-science" | "ml" | "notebook" | "jupyter" => t.name == "data-science",
-                "docker" | "devops" | "container" | "compose" => t.name == "docker",
-                "docs" | "documentation" | "mdbook" | "mkdocs" | "wiki" => t.name == "docs",
-                "rs" => t.name == "rust",
-                "py" => t.name == "python",
-                "golang" => t.name == "go",
-                "c" => t.name == "c",
-                "cpp" | "c++" | "cmake" => t.name == "cpp",
-                "java" | "maven" => t.name == "java",
-                "bash" | "sh" | "shell" | "script" => t.name == "bash",
-                "html" | "static" => t.name == "web",
-                "ts" | "node" => t.name == "typescript",
-                "mini" | "manual" | "scratch" | "blank" | "custom" => t.name == "minimal",
+                // 3dmodel
+                "3d" | "3dmodel" | "3d-model" | "3d-blender" | "blender" | "model" | "maya" | "gltf" => {
+                    t.name == "3dmodel"
+                }
+                // cad
+                "cad" | "cad-maker" | "maker" | "3dprint" | "freecad" | "openscad" | "solidworks" | "step" => {
+                    t.name == "cad"
+                }
+                // logo
+                "logo" | "logo-design" | "brand" | "branding" | "identity" | "brand-identity" => {
+                    t.name == "logo"
+                }
+                // video-edit
+                "video" | "video-edit" | "video-editing" | "yt-video" | "youtube" | "editing" | "film" | "premiere" | "davinci" | "kdenlive" => {
+                    t.name == "video-edit"
+                }
+                // photo-edit
+                "photo" | "photo-edit" | "photo-editing" | "darkroom" | "lightroom" | "gimp" | "raw" | "retouch" => {
+                    t.name == "photo-edit"
+                }
+                // vector-artwork
+                "vector" | "vector-artwork" | "vector-design" | "illustration" | "inkscape" | "illustrator" | "penpot" | "artwork" | "svg" => {
+                    t.name == "vector-artwork"
+                }
+                // webdesign
+                "web" | "webdesign" | "web-design" | "ui" | "ux" | "ui-ux" | "uiux" | "website" | "frontend" | "landing" | "figma" => {
+                    t.name == "webdesign"
+                }
+                // coding
+                "coding" | "code" | "dev" | "software" | "app" | "rust" | "rs" | "python" | "py" | "go" | "golang" | "cpp" | "c++" | "c" | "java" | "bash" | "shell" | "ts" | "typescript" | "fastapi" | "react" | "docker" | "manual" | "minimal" | "scratch" | "blank" | "custom" => {
+                    t.name == "coding"
+                }
+                // audio-production
+                "audio" | "audio-production" | "podcast" | "pod" | "music" | "track" | "sound" | "audacity" => {
+                    t.name == "audio-production"
+                }
+                // document
+                "doc" | "docs" | "document" | "book" | "novel" | "paper" | "research-paper" | "newsletter" | "portfolio" | "presentation" => {
+                    t.name == "document"
+                }
+                // game-dev
+                "game" | "game-dev" | "gamedev" | "godot" | "unity" => {
+                    t.name == "game-dev"
+                }
                 _ => false,
             }
     })
 }
 
 // =========================================================================
-// 1. YOUTUBE & VIDEO CONTENT CREATION (Kdenlive / Shotcut / OBS / Audacity)
+// 1. 3D MODEL TEMPLATE
 // =========================================================================
-fn yt_video_template() -> Template {
+fn model_3d_template() -> Template {
     let mut vars = HashMap::new();
-    vars.insert("description".into(), "YouTube video and content production project".into());
-    vars.insert("fps".into(), "60".into());
-    vars.insert("resolution".into(), "3840x2160 (4K UHD)".into());
+    vars.insert("description".into(), "3D modeling, texturing, rigging & rendering pipeline".into());
+    vars.insert("client_name".into(), "Internal / Studio In-House".into());
+    vars.insert("client_contact".into(), "client@example.com".into());
+    vars.insert("project_status".into(), "Active (Modeling & Texturing)".into());
+    vars.insert("target_date".into(), "TBD".into());
+    vars.insert("target_polycount".into(), "35,000 - 50,000 Triangles".into());
+    vars.insert("texture_resolution".into(), "4096 x 4096 (4K PBR)".into());
+    vars.insert("target_engine".into(), "Blender Cycles / Unreal Engine / WebGL".into());
 
     Template {
+        name: "3dmodel".into(),
+        description: "3D modeling, texturing, rigging & rendering (Blender/Maya/OBJ/FBX/glTF)".into(),
+        version: "2.0.0".into(),
         kind: super::TemplateKind::Preset,
         source_path: None,
-        name: "yt-video".into(),
-        description: "YouTube & video production studio (scripts, footage, audio, thumbnails)".into(),
-        version: "1.0.0".into(),
         variables: vars,
-        outputs: vec![
-            "4K/1080p Video (MP4)".into(),
-            "Video Script (Markdown)".into(),
-            "Thumbnails (WebP/PNG)".into(),
-            "YouTube Metadata & Chapters".into(),
-        ],
         directories: vec![
-            "scripts".into(),
-            "assets/footage/a-roll".into(),
-            "assets/footage/b-roll".into(),
-            "assets/audio/voiceover".into(),
-            "assets/audio/music".into(),
-            "assets/audio/sfx".into(),
-            "assets/graphics/overlays".into(),
-            "assets/thumbnails".into(),
-            "projects/kdenlive".into(),
-            "exports/drafts".into(),
-            "exports/final".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "scripts/script.md".into(),
-                content: r#"# Video Script: {{project_name}}
-
-**Target Duration:** ~10-12 mins  
-**Resolution:** {{resolution}} | **FPS:** {{fps}}  
-**Author:** {{author}}
-
----
-
-## 1. Hook (0:00 - 0:45)
-- **Visual:** High-energy visual or intriguing result / b-roll teaser.
-- **Audio:** Fast-paced hook question.
-> "What if you could build..."
-
-## 2. Intro & Problem (0:45 - 2:00)
-- **Visual:** A-Roll talking head with overlay graphics.
-- State the common challenge or creative concept.
-- Quick animated title stinger.
-
-## 3. Deep Dive / Build Process (2:00 - 8:30)
-- **Step 1:** Concept & setup
-- **Step 2:** Hands-on walkthrough / time-lapse
-- **Step 3:** Overcoming gotchas / pro tips
-
-## 4. Call to Action & Value Delivery (8:30 - 9:30)
-- Like & Subscribe cue
-- Links to resources in description / GitHub / template repo
-
-## 5. Outro & End Screen (9:30 - 10:30)
-- Final thoughts / community question
-- End screen cards for related videos
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "scripts/metadata.md".into(),
-                content: r#"# YouTube Video Metadata: {{project_name}}
-
-## Title Ideas (Pick the best CTR title)
-1. How I Built {{project_name}} in 24 Hours
-2. Stop Doing This! The Modern Way to {{project_name}}
-3. The Ultimate Open-Source Guide to {{project_name}}
-
-## Thumbnail Concepts
-- [ ] Concept A: High-contrast close-up with 3-word bold text
-- [ ] Concept B: "Before vs After" split composition
-- [ ] Concept C: Surprised reaction face + highlighted 3D/Design render
-
-## Description Box
-```text
-In this video, we build {{project_name}} from scratch using free open-source tools!
-
-Links & Resources:
-• Project Files: [Link]
-• Free Templates: [Link]
-
-Timestamps & Chapters:
-0:00 - Intro & The Problem
-0:45 - The Big Idea
-2:00 - Step-by-Step Walkthrough
-7:15 - Mistakes to Avoid
-9:30 - Final Results & Download
-
-#creativity #opensource #artcraft #diy
-```
-
-## Tags & Keywords
-`{{project_name}}`, `open source`, `tutorial`, `creative coding`, `maker`, `3d modeling`, `graphic design`
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: r#"# Raw video footage & heavy audio (store locally or on NAS)
-*.mp4
-*.mov
-*.mkv
-*.avi
-*.m4v
-*.wav
-*.flac
-*.aac
-
-# Video editor autosaves and proxies
-**/.kdenlive*
-**/proxy/
-**/thumbs/
-*.autosave
-
-# Render exports (keep final in release/cloud)
-exports/drafts/*
-exports/final/*
-!exports/.gitkeep
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - Video Production Workspace
-
-Created by **{{author}}**.
-
-## Directory Structure
-- `scripts/`: Video scripts, shot lists, and YouTube metadata (SEO, titles, chapters).
-- `assets/footage/`: A-roll and B-roll recordings.
-- `assets/audio/`: Voiceovers, background music tracks, and sound effects (SFX).
-- `assets/graphics/`: Overlays, lower-thirds, animations, and thumbnail mockups.
-- `projects/`: Project files for Kdenlive, DaVinci Resolve, or Shotcut.
-- `exports/`: Video render drafts and final uploaded cuts.
-
-## Recommended Open-Source Stack
-- **Editing:** Kdenlive / Shotcut
-- **Recording & Streaming:** OBS Studio
-- **Audio Processing:** Audacity / Tenacity
-- **Transcoding:** HandBrake / ffmpeg
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 2. 3D MODELING & ANIMATION (Blender / Godot / Textures / Renders)
-// =========================================================================
-fn blender_3d_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "3D Modeling, Texturing & Rendering Studio".into());
-    vars.insert("poly_budget".into(), "50,000 tris (Realtime) / Unlimited (Cycles)".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "3d-blender".into(),
-        description: "3D modeling, texturing, rendering & assets (Blender/Godot/ArmorPaint)".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Game-Ready 3D Meshes (GLTF/OBJ)".into(),
-            "High-Res Cycles/Eevee Renders".into(),
-            "PBR Material Maps (2K/4K)".into(),
-        ],
-        directories: vec![
-            "scenes".into(),
             "models/high_poly".into(),
             "models/low_poly".into(),
             "textures/pbr".into(),
-            "textures/references".into(),
+            "textures/baked".into(),
             "materials".into(),
-            "renders/stills".into(),
-            "renders/animation".into(),
+            "references/concept_art".into(),
+            "references/moodboard".into(),
+            "renders/wip".into(),
+            "renders/final".into(),
             "exports/gltf".into(),
             "exports/fbx".into(),
             "exports/obj".into(),
+            "notes".into(),
         ],
         files: vec![
-            super::TemplateFile {
-                path: "models/specs.md".into(),
-                content: r#"# 3D Asset Technical Specifications: {{project_name}}
+            TemplateFile {
+                path: "README.md".into(),
+                content: r#"# {{project_name}}
 
-## Scale & Dimensions
-- **Units:** Metric (1 Unit = 1 Meter)
-- **Origin (Pivot):** Base center / Bottom aligned (Z = 0)
-- **Target Polycount Budget:** {{poly_budget}}
+> {{description}}
 
-## PBR Textures (Metallic-Roughness Workflow)
-- **Resolution:** 2048x2048 (or 4096x4096 for hero assets)
-- **Maps:**
-  - `BaseColor` (sRGB)
-  - `Roughness` (Non-Color)
-  - `Metallic` (Non-Color)
-  - `Normal` (OpenGL format, Non-Color)
-  - `AmbientOcclusion` / `ORM` Channel-packed (Non-Color)
-  - `Emission` (sRGB, optional)
+---
 
-## Quality Checklist
-- [ ] Transforms applied (Location: 0, Rotation: 0, Scale: 1.0)
-- [ ] No N-Gons (Clean Quads and Triangles only)
-- [ ] UV unwrapped with uniform texel density
-- [ ] Normals oriented correctly (no flipped faces)
-"#
-                .into(),
+## ◈ Project & Client Information
+
+| Field | Detail |
+|---|---|
+| **Project Title** | {{project_name}} |
+| **Client / Organization** | {{client_name}} |
+| **Client Contact** | {{client_contact}} |
+| **Project Lead / Artist** | {{author}} |
+| **Created Date** | {{date}} |
+| **License** | {{license}} |
+| **Project Status** | {{project_status}} |
+| **Target Delivery** | {{target_date}} |
+
+### Project Scope & Specifications
+- **Objective:** Production-ready 3D asset with clean topology, UV layout, and PBR textures.
+- **Target Budget:** {{target_polycount}}
+- **Texture Standard:** {{texture_resolution}} (Albedo, Normal, Roughness, Metalness, AO)
+- **Target Platform:** {{target_engine}}
+
+---
+
+## ◈ Project Task List & Milestones
+
+### Phase 1: Planning, Concept & Asset Gathering
+- [x] Scaffolding directory structure and initializing workspace
+- [ ] Review client brief and technical constraints (polycount, engine targets)
+- [ ] Collect visual references, scale sheets, and moodboards in `references/`
+- [ ] Define blockout silhouette, primary proportions, and pivot locations
+
+### Phase 2: High-Poly Sculpting & Low-Poly Retopology
+- [ ] Sculpt / model high-poly geometry with high-frequency surface details
+- [ ] Retopologize clean quad-dominant low-poly game/production mesh
+- [ ] Check silhouette, edge flow, deformation loops, and vertex normal shading
+- [ ] Optimize triangle budget within {{target_polycount}}
+
+### Phase 3: UV Layout, Baking & PBR Texturing
+- [ ] Unwrap non-overlapping UVs with packed islands and optimized texel density
+- [ ] Bake Curvature, Ambient Occlusion, Normal, Position, and Thickness maps
+- [ ] Author PBR materials in `textures/pbr/` (Albedo, Roughness, Metallic, Normal)
+- [ ] Test real-time material response under neutral studio HDRI lighting
+
+### Phase 4: Rigging, Lighting, Final Renders & Client Handover
+- [ ] Construct deformation skeleton, control rig, and weight skinning (if animated)
+- [ ] Compose turntable lighting setup and camera shots in `renders/wip/`
+- [ ] Render 4K marketing beauty shots and wireframe showcase to `renders/final/`
+- [ ] Export final optimized assets into `exports/gltf/`, `exports/fbx/`, and `exports/obj/`
+- [ ] Perform client pre-delivery validation and milestone signoff with {{client_name}}
+
+---
+
+## ◈ Workspace Directory Map
+
+```
+{{project_name}}/
+├── models/
+│   ├── high_poly/        # High-resolution sculpts and subdivision masters
+│   └── low_poly/         # Game-ready, optimized production meshes
+├── textures/
+│   ├── pbr/              # PBR map set (Albedo, Normal, Roughness, Metalness, AO)
+│   └── baked/            # Ambient occlusion, curvature, and normal bakes
+├── materials/            # Material presets, shader graphs, and node trees
+├── references/
+│   ├── concept_art/      # Concept sketches, orthographics, and scale guides
+│   └── moodboard/        # Material studies, color swatches, and lighting inspiration
+├── renders/
+│   ├── wip/              # Work-in-progress snapshots for quick reviews
+│   └── final/            # Master high-res beauty renders and turntables
+├── exports/
+│   ├── gltf/             # Real-time WebGL / GLB self-contained binaries
+│   ├── fbx/              # Rigged production exchange files for game engines
+│   └── obj/              # Static mesh wavefront geometry exchange
+└── notes/                # Technical memos, changelogs, and client feedback
+```
+
+---
+
+## ◈ Deliverables & Output Specifications
+- **Master 3D Scene:** Native source project file (.blend / .fbx)
+- **Real-Time Binary:** Optimized `.glb` / `.gltf` asset with embedded textures
+- **PBR Texture Bundle:** 4K 16-bit Normal and 8-bit Albedo/Roughness maps
+- **Beauty Render Suite:** 3840x2160 PNG renders with transparent background
+"#.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
+            TemplateFile {
+                path: "models/specs.md".into(),
+                content: r#"# 3D Asset Technical Specifications
+
+## Target Metrics
+- **Target Polygon Budget:** {{target_polycount}}
+- **Current Triangle Count:** TBD
+- **Texture Resolution:** {{texture_resolution}}
+- **UV Set Count:** 1 Master Set (UDIM 1001)
+- **Unit Scale:** Metric (1 Unit = 1.0 Meter)
+- **Forward Axis:** -Y Forward, Z Up (Blender) -> -Z Forward, Y Up (glTF/OpenGL)
+
+## Texture Map Standards
+| Channel | Format | Color Space | Notes |
+|---|---|---|---|
+| **Base Color / Albedo** | PNG / TIFF | sRGB | Clean color without baked shadow |
+| **Roughness** | PNG / TIFF | Linear / Non-Color | 0 = Mirror, 255 = Diffuse Rough |
+| **Metallic** | PNG / TIFF | Linear / Non-Color | Binary mask (0.0 or 1.0) |
+| **Normal** | PNG / TIFF | Linear (OpenGL +Y) | Tangent space 16-bit normal |
+| **Ambient Occlusion** | PNG / TIFF | Linear / Non-Color | Baked contact shadows |
+| **Emissive** | PNG / TIFF | sRGB | Self-illumination channel |
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "references/moodboard/references.md".into(),
+                content: r#"# Visual Reference & Style Guide
+
+- **Project:** {{project_name}}
+- **Client:** {{client_name}}
+- **Art Direction:** Stylized Realism / Clean Industrial Aesthetics
+
+## Reference Inventory
+- Reference 01: Silhouette balance and primary volume proportions
+- Reference 02: Real-world surface wear, edge scratching, and micro-roughness
+- Reference 03: Color palette and lighting contrast
+"#.into(),
+                required: false,
+                executable: false,
+            },
+            TemplateFile {
                 path: ".gitignore".into(),
-                content: r#"# Blender autosaves and backup files
+                content: r#"# 3D Project Git Ignore
 *.blend1
 *.blend2
 *.blend@
-*.blend@@
-
-# Heavy baked caches (fluid, smoke, cloth, physics)
-**/cache_fluid/
-**/cache_smoke/
-**/cache_physics/
-
-# Heavy render sequences
-renders/animation/*.png
-renders/animation/*.exr
-renders/stills/*.exr
+*.tmp
+*.temp
+*.bak
+*.autosave
+*.cache
+*.bphys
+renders/wip/*.png
+renders/wip/*.jpg
 "#
                 .into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - 3D Modeling & Rendering Project
-
-Created by **{{author}}**.
-
-## Organization
-- `scenes/`: Main `.blend` scene and staging environments.
-- `models/`: High-poly sculpts and low-poly retopologized meshes.
-- `textures/`: Reference moodboards and PBR material maps.
-- `renders/`: High-resolution Cycles/Eevee image and animation outputs.
-- `exports/`: Game-ready `.gltf`/`.glb`, `.fbx`, and `.obj` packages.
-
-## Recommended Open-Source Apps
-- **3D Creation Suite:** Blender
-- **3D Texture Painting:** ArmorPaint / Material Maker
-- **Game Engine & Asset Testing:** Godot Engine
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
+        ],
+        outputs: vec![
+            "Master 3D Asset (.blend / .fbx / .obj)".into(),
+            "Game-Ready glTF/GLB Binary Asset".into(),
+            "4K PBR Texture Maps (Albedo, Normal, Roughness, Metalness, AO)".into(),
+            "High-Resolution Presentation Renders (4K UHD)".into(),
         ],
     }
 }
 
 // =========================================================================
-// 3. CAD & MAKER (FreeCAD / OpenSCAD / 3D Printing / Laser Cutting / CNC)
+// 2. CAD & MECHANICAL ENGINEERING TEMPLATE
 // =========================================================================
-fn cad_maker_template() -> Template {
+fn cad_template() -> Template {
     let mut vars = HashMap::new();
-    vars.insert("description".into(), "CAD, 3D printing & hardware maker project".into());
-    vars.insert("tolerance".into(), "+/- 0.2 mm".into());
+    vars.insert("description".into(), "Mechanical CAD, 3D printing & manufacturing".into());
+    vars.insert("client_name".into(), "Internal / Engineering In-House".into());
+    vars.insert("client_contact".into(), "engineering@example.com".into());
+    vars.insert("project_status".into(), "Active (CAD Drafting & Prototyping)".into());
+    vars.insert("target_date".into(), "TBD".into());
+    vars.insert("print_material".into(), "PETG / PLA+ / Tough Resin".into());
+    vars.insert("manufacturing_method".into(), "FDM 3D Printing / CNC Milling".into());
+    vars.insert("standard_tolerance".into(), "±0.15 mm (FDM) / ±0.05 mm (Machined)".into());
 
     Template {
+        name: "cad".into(),
+        description: "Mechanical CAD, 3D printing & manufacturing (FreeCAD/OpenSCAD/STEP/STL/3MF)".into(),
+        version: "2.0.0".into(),
         kind: super::TemplateKind::Preset,
         source_path: None,
-        name: "cad-maker".into(),
-        description: "CAD, 3D printing, laser cutting & maker engineering (FreeCAD/OpenSCAD)".into(),
-        version: "1.0.0".into(),
         variables: vars,
-        outputs: vec![
-            "3D Print Files (STL/3MF)".into(),
-            "CAD Exchange (STEP)".into(),
-            "Laser Cut Profiles (DXF/SVG)".into(),
-            "Bill of Materials (BOM)".into(),
-        ],
         directories: vec![
-            "cad/models".into(),
-            "cad/drawings".into(),
-            "cad/step_exports".into(),
-            "slicer/3d_print_stl".into(),
-            "slicer/3mf_profiles".into(),
-            "cnc_laser/dxf_svg".into(),
+            "cad/parts".into(),
+            "cad/assemblies".into(),
+            "cad/drawings_2d".into(),
+            "slicer/stl".into(),
+            "slicer/3mf".into(),
+            "slicer/gcode".into(),
+            "exports/step".into(),
+            "exports/dxf".into(),
             "bom".into(),
-            "docs".into(),
+            "specs".into(),
+            "photos/prototypes".into(),
         ],
         files: vec![
-            super::TemplateFile {
+            TemplateFile {
+                path: "README.md".into(),
+                content: r#"# {{project_name}}
+
+> {{description}}
+
+---
+
+## ◈ Project & Client Information
+
+| Field | Detail |
+|---|---|
+| **Project Title** | {{project_name}} |
+| **Client / Organization** | {{client_name}} |
+| **Client Contact** | {{client_contact}} |
+| **Lead Engineer / Author** | {{author}} |
+| **Created Date** | {{date}} |
+| **License** | {{license}} |
+| **Project Status** | {{project_status}} |
+| **Target Delivery** | {{target_date}} |
+
+### Engineering Specifications
+- **Manufacturing Process:** {{manufacturing_method}}
+- **Material Choice:** {{print_material}}
+- **Design Tolerance:** {{standard_tolerance}}
+- **Fasteners:** Metric ISO Standard (M3, M4, M5 hex fasteners & heat-set brass inserts)
+
+---
+
+## ◈ Project Task List & Milestones
+
+### Phase 1: Requirements, Dimensional Constraints & Sourcing
+- [x] Initializing engineering workspace and repository setup
+- [ ] Capture mechanical constraints, interface clearances, and mounting holes
+- [ ] Draft Bill of Materials (BOM) in `bom/bill_of_materials.md` with vendor links
+- [ ] Verify standard hardware stock (bearings, screws, threaded inserts)
+
+### Phase 2: Parametric 3D CAD Modeling & Assembly
+- [ ] Model individual parametric solid parts in `cad/parts/`
+- [ ] Assemble parts into master assembly in `cad/assemblies/`
+- [ ] Run collision detection and dynamic interference checks
+- [ ] Optimize geometry for additive manufacturing (45° overhangs, chamfers over fillets)
+
+### Phase 3: Slicing, Rapid Prototyping & Tolerance Fit Testing
+- [ ] Export manifold STL and 3MF files to `slicer/stl/` and `slicer/3mf/`
+- [ ] Slice test fitment coupons and print verification prototypes
+- [ ] Measure physical parts with digital calipers against `specs/tolerances.md`
+- [ ] Iterate hole diameters for heat-set insert pullout resistance
+
+### Phase 4: Production STEP Exports, 2D Drawings & Handover
+- [ ] Generate standard neutral STEP/IGES CAD models in `exports/step/`
+- [ ] Export 2D dimensioned engineering drawings (DXF/PDF) in `exports/dxf/`
+- [ ] Document assembly instructions with exploded view diagrams
+- [ ] Complete final engineering review and handover with {{client_name}}
+
+---
+
+## ◈ Workspace Directory Map
+
+```
+{{project_name}}/
+├── cad/
+│   ├── parts/            # Individual parametric component models (.FCStd, .scad)
+│   ├── assemblies/       # Multi-part kinematic assemblies and constraints
+│   └── drawings_2d/      # Vector drafts and dimensioned blueprints
+├── slicer/
+│   ├── stl/              # Watertight polygon meshes for 3D slicing
+│   ├── 3mf/              # Modern multi-material, orientation-aware 3MF packages
+│   └── gcode/            # Machine-specific toolpath configurations
+├── exports/
+│   ├── step/             # Neutral CAD exchange solids (ISO 10303 STEP AP214)
+│   └── dxf/              # Laser cutting, waterjet, and machining profile contours
+├── bom/                  # Bill of Materials and hardware component tracking
+├── specs/                # Physical tolerances, torque ratings, and thermal notes
+└── photos/prototypes/    # Photographic documentation of test iterations
+```
+
+---
+
+## ◈ Deliverables & Output Specifications
+- **Master CAD Solids:** Precision parametric STEP AP214 models
+- **3D Printing Package:** Clean manifold STL / 3MF files ready for slicing
+- **Manufacturing Blueprints:** 2D dimensioned drawings (PDF / DXF)
+- **Bill of Materials:** Complete component, fastener, and cost schedule
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
                 path: "bom/bill_of_materials.md".into(),
-                content: r#"# Bill of Materials (BOM): {{project_name}}
+                content: r#"# Bill of Materials (BOM)
 
-| Part # | Description | Quantity | Material / Source | Notes |
-|---|---|---|---|---|
-| P-01 | Main Chassis | 1 | PETG / PLA 3D Print | 20% infill, 4 perimeters |
-| P-02 | Top Cover Plate | 1 | 3mm Acrylic Laser Cut | Matte Black |
-| H-01 | M3x12mm Hex Socket Screws | 8 | Stainless Steel | Hardware store |
-| H-02 | M3 Brass Heat-set Threaded Inserts | 8 | Brass (OD 4.2mm) | Heat press into chassis |
-| E-01 | USB-C Power Jack Board | 1 | Electronics supplier | 5V 3A rated |
+- **Project:** {{project_name}}
+- **Client:** {{client_name}}
+- **Revision:** Rev 1.0
 
-**Total Estimated Hardware Cost:** ~$15.00
-"#
-                .into(),
+| Item # | Part Description | Qty | Material | Sourcing / Vendor | Unit Cost | Status |
+|---|---|---|---|---|---|---|
+| 01 | Primary Structural Housing | 1 | PETG | 3D Printed | In-house | Ready |
+| 02 | M3 x 12mm Socket Head Cap Screw | 8 | Stainless Steel | McMaster / Local Hardware | $0.15 | In Stock |
+| 03 | M3 x 4mm Heat-Set Brass Insert | 8 | Brass | CNC Kitchen / Amazon | $0.20 | In Stock |
+| 04 | 608-2RS Sealed Ball Bearing | 2 | Steel | Fastenal | $1.20 | Ordered |
+"#.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
-                path: "docs/assembly_guide.md".into(),
-                content: r#"# Assembly Instructions: {{project_name}}
+            TemplateFile {
+                path: "specs/tolerances.md".into(),
+                content: r#"# Mechanical Tolerances & Print Guidelines
 
-## Required Tools
-- Soldering iron (for brass heat-set inserts at ~220°C)
-- 2.5mm Hex Allen wrench
-- Precision tweezers
+## Additive Manufacturing Guidelines (FDM)
+- **Layer Height:** 0.20 mm standard (0.12 mm for fine threads)
+- **Perimeters / Walls:** 4 walls minimum (1.6 mm thickness)
+- **Infill:** 35% Gyroid infill for isotropic strength
+- **Hole Compensation:** +0.20 mm radial clearance for press-fit pins
+- **Heat-Set Insert Hole ID:** 4.0 mm for standard M3 insert
 
-## Steps
-1. **Heat-set Inserts Installation:**
-   - Place M3 brass inserts onto the holes of the 3D-printed chassis.
-   - Gently press with the soldering iron tip until flush with the plastic surface.
-2. **Electronics Mounting:**
-   - Seat the power PCB into the designated alignment slots.
-3. **Closing the Enclosure:**
-   - Align the laser-cut top plate and fasten using the M3x12mm screws.
-"#
-                .into(),
+## Dimensional Checks
+- [ ] Critical Outer Dimensions: ±0.15 mm
+- [ ] Bearing Recess Diameter: H7 fit (light press)
+- [ ] Hardware Clearance: M3 bolt clearance hole = 3.3 mm ID
+"#.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
+            TemplateFile {
                 path: ".gitignore".into(),
-                content: r#"# CAD backup files
-*.FCBak
+                content: r#"# CAD & Engineering Git Ignore
 *.FCStd1
-*.FCStd2
-*~
-*.swp
-
-# Slicer generated machine code (keep STLs/3MF, ignore raw gcode)
+*.FCStd@
 *.gcode
-*.gcode.zip
-*.qoi
-"#
-                .into(),
+*.stl_temp
+*.bak
+*.autosave
+*.log
+slicer/gcode/*
+"#.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - Maker & CAD Engineering
-
-Designed by **{{author}}**.
-
-## Fabrication Specifications
-- **Design Tolerance:** {{tolerance}}
-- **Recommended 3D Filament:** PETG, ABS, or Tough PLA
-- **Laser Cutting Thickness:** 3.0 mm (Acrylic or Birch Plywood)
-
-## Directory Structure
-- `cad/models/`: Native Parametric CAD files (FreeCAD `.FCStd`, OpenSCAD `.scad`).
-- `cad/step_exports/`: Universal STEP files for CAD exchange.
-- `slicer/`: 3D printing STL files and configured 3MF slicer project files.
-- `cnc_laser/`: 2D vector DXF and SVG profiles for laser cutters and CNC mills.
-- `bom/`: Bill of materials, fastener specs, and component sourcing links.
-- `docs/`: Assembly manuals, schematics, and wiring diagrams.
-
-## Open-Source Maker Apps
-- **Parametric 3D CAD:** FreeCAD / OpenSCAD / SolveSpace
-- **2D Technical Drafting:** LibreCAD / QCAD
-- **Slicing:** OrcaSlicer / PrusaSlicer
-- **CAM & Laser:** LaserWeb / CNCjs
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
+        ],
+        outputs: vec![
+            "Precision STEP / IGES CAD Master Models".into(),
+            "Production-Ready 3D Printable STL & 3MF Files".into(),
+            "2D Dimensioned Engineering Drawings (DXF/PDF)".into(),
+            "Comprehensive Bill of Materials (BOM) with Hardware Links".into(),
         ],
     }
 }
 
 // =========================================================================
-// 4. VECTOR DESIGN & GRAPHIC ART (Inkscape / Penpot / Branding)
+// 3. LOGO & BRAND IDENTITY TEMPLATE
 // =========================================================================
-fn vector_design_template() -> Template {
+fn logo_template() -> Template {
     let mut vars = HashMap::new();
-    vars.insert("description".into(), "Vector graphic design, branding & iconography".into());
+    vars.insert("description".into(), "Logo design, brand identity & vector assets".into());
+    vars.insert("client_name".into(), "Internal / In-House Brand".into());
+    vars.insert("client_contact".into(), "branding@example.com".into());
+    vars.insert("project_status".into(), "Active (Brand Discovery & Concepts)".into());
+    vars.insert("target_date".into(), "TBD".into());
+    vars.insert("brand_archetype".into(), "Modern, Minimalist, Authoritative".into());
+    vars.insert("primary_color".into(), "#0F172A (Deep Slate)".into());
+    vars.insert("accent_color".into(), "#10B981 (Emerald Green)".into());
 
     Template {
+        name: "logo".into(),
+        description: "Logo design, brand identity & vector assets (SVG/EPS/PNG/Typography/Guidelines)".into(),
+        version: "2.0.0".into(),
         kind: super::TemplateKind::Preset,
         source_path: None,
-        name: "vector-design".into(),
-        description: "Vector graphics, illustration, UI & branding (Inkscape/Penpot/Krita)".into(),
-        version: "1.0.0".into(),
         variables: vars,
-        outputs: vec![
-            "Vector Artwork (SVG)".into(),
-            "Visual Brand Guidelines (PDF)".into(),
-            "Print CMYK Exports".into(),
-            "Icon Glyphs".into(),
-        ],
         directories: vec![
-            "source/svg".into(),
-            "source/penpot".into(),
-            "assets/fonts".into(),
-            "assets/colors".into(),
-            "assets/icons".into(),
-            "mockups".into(),
-            "exports/web".into(),
-            "exports/print".into(),
+            "concepts/sketches".into(),
+            "concepts/explorations".into(),
+            "source/vector".into(),
+            "source/color_palettes".into(),
+            "exports/web/svg".into(),
+            "exports/web/png".into(),
+            "exports/print/cmyk".into(),
+            "exports/print/eps".into(),
+            "exports/favicon".into(),
+            "mockups/stationery".into(),
+            "mockups/digital".into(),
+            "guidelines".into(),
         ],
         files: vec![
-            super::TemplateFile {
-                path: "branding_guidelines.md".into(),
-                content: r#"# Visual Brand Guidelines: {{project_name}}
+            TemplateFile {
+                path: "README.md".into(),
+                content: r#"# {{project_name}}
 
-## Color Palette
-| Swatch | Name | HEX | RGB | Use Case |
+> {{description}}
+
+---
+
+## ◈ Project & Client Information
+
+| Field | Detail |
+|---|---|
+| **Project Title** | {{project_name}} |
+| **Client / Organization** | {{client_name}} |
+| **Client Contact** | {{client_contact}} |
+| **Brand Designer / Author** | {{author}} |
+| **Created Date** | {{date}} |
+| **License** | {{license}} |
+| **Project Status** | {{project_status}} |
+| **Target Delivery** | {{target_date}} |
+
+### Brand Attributes & Scope
+- **Brand Archetype:** {{brand_archetype}}
+- **Primary Brand Color:** {{primary_color}}
+- **Accent Brand Color:** {{accent_color}}
+- **Core Deliverables:** Vector Mark, Wordmark, Horizontal & Stacked Lockups, Social Icons, Brand Guide.
+
+---
+
+## ◈ Project Task List & Milestones
+
+### Phase 1: Brand Discovery, Values & Moodboarding
+- [x] Setting up brand identity directory structure
+- [ ] Conduct client discovery session with {{client_name}} on mission and values
+- [ ] Analyze industry competitor landscape and visual positioning
+- [ ] Assemble moodboard and typography direction in `concepts/`
+
+### Phase 2: Ideation, Concept Sketches & Vector Drafting
+- [ ] Draft 20+ thumbnail sketches exploring symbolic metaphors
+- [ ] Select 3 strongest concept directions for vector execution in `source/vector/`
+- [ ] Build geometric grid construction and optical balance curves
+- [ ] Present preliminary concept boards to {{client_name}} for selection
+
+### Phase 3: Color Palette, Typography & Refinements
+- [ ] Define primary, secondary, and neutral color values in `source/color_palettes/`
+- [ ] Pair complementary header and body typography
+- [ ] Test scalability from 16px favicon up to large billboard scale
+- [ ] Create real-world mockups (business cards, apparel, app icon, signage)
+
+### Phase 4: Master Vector Exports & Brand Style Guide
+- [ ] Export clean, minified SVG files with outlined fonts into `exports/web/svg/`
+- [ ] Generate print-ready CMYK vector EPS/PDF files into `exports/print/`
+- [ ] Export transparent high-DPI raster assets (1x, 2x, 3x PNG & WebP)
+- [ ] Compile complete Brand Guidelines manual in `guidelines/brand_guidelines.md`
+- [ ] Final asset handover and archive package for {{client_name}}
+
+---
+
+## ◈ Workspace Directory Map
+
+```
+{{project_name}}/
+├── concepts/
+│   ├── sketches/         # Raw digital/paper thumbnail concepts and brainstorming
+│   └── explorations/     # Early vector iterations and rejected alternate marks
+├── source/
+│   ├── vector/           # Editable master artwork files (.svg, .ai, .penpot)
+│   └── color_palettes/   # Swatches and digital color token definitions
+├── exports/
+│   ├── web/
+│   │   ├── svg/          # Lightweight, clean, minified vector web logos
+│   │   └── png/          # Transparent PNGs at @1x, @2x, @3x resolutions
+│   ├── print/
+│   │   ├── cmyk/         # 300 DPI high-resolution CMYK print files
+│   │   └── eps/          # Universal EPS vector masters for print shops
+│   └── favicon/          # Multi-size favicon package (16x16, 32x32, 180x180, 512x512)
+├── mockups/
+│   ├── stationery/       # Business card, envelope, and letterhead mockups
+│   └── digital/          # Website header, mobile app, and social avatar mockups
+└── guidelines/           # Brand style guide, clear space, and typography rules
+```
+
+---
+
+## ◈ Deliverables & Output Specifications
+- **Master Vector Package:** Clean SVG, EPS, and PDF files
+- **Responsive Variations:** Horizontal, Stacked, and Isolated Icon Mark
+- **Colorways:** Full Color, Inverted White, and Monochrome Black
+- **Brand Style Guide:** Complete documentation of colors, fonts, and usage rules
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "guidelines/brand_guidelines.md".into(),
+                content: r#"# Brand Guidelines & Visual Identity Standards
+
+- **Brand:** {{project_name}}
+- **Client:** {{client_name}}
+- **Version:** 1.0
+
+## 1. Logo Clearspace & Minimum Size
+- **Clearspace:** Maintain minimum clear breathing room equal to the height of the icon mark on all sides.
+- **Minimum Digital Size:** 24px height.
+- **Minimum Print Size:** 12mm height.
+
+## 2. Color Palette Specifications
+| Role | Color Name | Hex Code | CMYK | Pantone |
 |---|---|---|---|---|
-| [Primary] | Primary Brand | `#10b981` | rgb(16, 185, 129) | Main CTA, Logo, Headers |
-| [Accent] | Accent Blue | `#3b82f6` | rgb(59, 130, 246) | Links, Badges, Highlights |
-| [Dark] | Dark Slate | `#0f172a` | rgb(15, 23, 42) | Primary Dark Background |
-| [Light] | Clean White | `#f8fafc` | rgb(248, 250, 252) | Primary Text & Contrast |
+| **Primary** | Midnight Slate | #0F172A | 85, 75, 45, 55 | 5395 C |
+| **Accent** | Emerald Green | #10B981 | 75, 0, 65, 0 | 7724 C |
+| **Surface** | Pure White | #FFFFFF | 0, 0, 0, 0 | White |
+| **Neutral** | Cool Grey | #F1F5F9 | 5, 2, 0, 2 | 663 C |
 
-## Typography
-- **Headings:** Inter Display / Space Grotesk (Bold, 700)
-- **Body:** Inter / Roboto (Regular, 400)
-- **Code & Tech:** JetBrains Mono (Medium, 500)
+## 3. Typography
+- **Primary Header Font:** Inter / Montserrat (Bold / Semi-Bold)
+- **Secondary Body Font:** Inter / Open Sans (Regular)
 
-## Logo Clearspace Rules
-- Always preserve padding equal to the height of the brand icon around the full wordmark.
-- Do not distort, rotate, or apply non-standard drop shadows to the vector mark.
-"#
-                .into(),
+## 4. Logo Misuse (Do Not)
+- Do NOT distort, squish, or stretch the proportions.
+- Do NOT alter the established brand colors.
+- Do NOT place on busy photographic backgrounds without adequate contrast.
+"#.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
+            TemplateFile {
+                path: "source/color_palettes/palette.md".into(),
+                content: r#"# Color Palette Tokens
+
+```css
+:root {
+  --color-primary: #0F172A;
+  --color-accent: #10B981;
+  --color-background: #FFFFFF;
+  --color-surface: #F8FAFC;
+  --color-text-main: #0F172A;
+  --color-text-muted: #64748B;
+}
+```
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
                 path: ".gitignore".into(),
-                content: r#"# Vector design backups
-*.svg.202*
-*.autosave.*
-*~
-.DS_Store
-
-# Temporary export renders
-exports/web/*.tmp
-"#
-                .into(),
+                content: r#"# Logo Project Git Ignore
+*.tmp
+*.bak
+*.autosave
+*.preview.png
+"#.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - Vector Graphic Design Workspace
-
-Created by **{{author}}**.
-
-## Directory Structure
-- `source/svg/`: Raw Inkscape SVG master artwork.
-- `source/penpot/`: UI/UX design mockups and collaborative Penpot components.
-- `assets/colors/`: Color palette swatches and design tokens.
-- `assets/icons/`: Scalable icon sets and symbol glyphs.
-- `exports/web/`: Optimized web SVGs, WebP illustrations, and PNGs.
-- `exports/print/`: Print-ready CMYK PDF and high-DPI assets.
-
-## Open-Source Design Stack
-- **Vector Illustration:** Inkscape
-- **UI/UX & Design Systems:** Penpot (Open-source Figma alternative)
-- **Raster Painting:** Krita / GIMP
-- **Desktop Publishing:** Scribus
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
+        ],
+        outputs: vec![
+            "Master Vector Logo Suite (SVG, EPS, PDF)".into(),
+            "High-Resolution Raster PNG Assets (@1x, @2x, @3x)".into(),
+            "Complete Brand Identity Guidelines Document".into(),
+            "Full Favicon & Social Media Icon Bundle".into(),
         ],
     }
 }
 
 // =========================================================================
-// 5. PHOTO EDITING & DIGITAL DARKROOM (Darktable / RawTherapee / GIMP)
+// 4. VIDEO EDITING & POST-PRODUCTION TEMPLATE
 // =========================================================================
-fn photo_editing_template() -> Template {
+fn video_edit_template() -> Template {
     let mut vars = HashMap::new();
-    vars.insert("description".into(), "Photo editing, RAW grading & digital retouching".into());
+    vars.insert("description".into(), "Video editing, motion graphics & color grading".into());
+    vars.insert("client_name".into(), "Internal / Production Channel".into());
+    vars.insert("client_contact".into(), "video@example.com".into());
+    vars.insert("project_status".into(), "Active (Rough Cut Assembly)".into());
+    vars.insert("target_date".into(), "TBD".into());
+    vars.insert("resolution".into(), "3840x2160 (4K UHD) / 1080x1920 (Vertical)".into());
+    vars.insert("target_fps".into(), "60 fps".into());
+    vars.insert("target_loudness".into(), "-14 LUFS (Web Broadcast Standard)".into());
 
     Template {
+        name: "video-edit".into(),
+        description: "Video editing, motion graphics & color grading (DaVinci/Premiere/Kdenlive/4K)".into(),
+        version: "2.0.0".into(),
         kind: super::TemplateKind::Preset,
         source_path: None,
-        name: "photo-editing".into(),
-        description: "Photo editing, RAW developing & retouching (Darktable/GIMP/RawTherapee)".into(),
-        version: "1.0.0".into(),
         variables: vars,
-        outputs: vec![
-            "High-Res Print JPEGs".into(),
-            "Web-Compressed WebP".into(),
-            "Color Grading Presets / LUTs".into(),
-            "Session Shot Logs".into(),
-        ],
         directories: vec![
-            "raw".into(),
-            "selects".into(),
-            "edits/gimp_xcf".into(),
-            "edits/krita_kra".into(),
-            "exports/full_res".into(),
+            "footage/raw".into(),
+            "footage/broll".into(),
+            "audio/voiceover".into(),
+            "audio/music".into(),
+            "audio/sfx".into(),
+            "graphics/titles".into(),
+            "graphics/thumbnails".into(),
+            "projects/timeline".into(),
+            "color_luts".into(),
+            "exports/drafts".into(),
+            "exports/final_master".into(),
+            "transcripts".into(),
+        ],
+        files: vec![
+            TemplateFile {
+                path: "README.md".into(),
+                content: r#"# {{project_name}}
+
+> {{description}}
+
+---
+
+## ◈ Project & Client Information
+
+| Field | Detail |
+|---|---|
+| **Project Title** | {{project_name}} |
+| **Client / Organization** | {{client_name}} |
+| **Client Contact** | {{client_contact}} |
+| **Lead Video Editor** | {{author}} |
+| **Created Date** | {{date}} |
+| **License** | {{license}} |
+| **Project Status** | {{project_status}} |
+| **Target Delivery** | {{target_date}} |
+
+### Video Master Specifications
+- **Master Resolution:** {{resolution}}
+- **Timeline Framerate:** {{target_fps}}
+- **Audio Target:** {{target_loudness}} (-1 dB True Peak)
+- **Delivery Formats:** 16:9 Landscape YouTube Master + 9:16 Vertical Short/Reel
+
+---
+
+## ◈ Project Task List & Milestones
+
+### Phase 1: Media Ingestion, Logging & Assembly
+- [x] Initializing video editing workspace structure
+- [ ] Ingest camera cards into `footage/raw/` and verify checksums
+- [ ] Transcribe speech and synchronize multi-cam/external audio tracks
+- [ ] Assemble A-Roll narrative timeline and trim silent gaps / flubs
+
+### Phase 2: B-Roll, Pacing & Visual Storytelling
+- [ ] Curate contextual visual cutaways in `footage/broll/`
+- [ ] Add lower thirds, animated callouts, and motion text in `graphics/titles/`
+- [ ] Refine edit pacing, rhythm, and retention hooks in first 30 seconds
+- [ ] Export Draft v1 into `exports/drafts/` for client review
+
+### Phase 3: Audio Mastering, Sound FX & Color Grading
+- [ ] Level dialog speech, apply subtle compression, and clean background noise
+- [ ] Place sound effects (whooshes, risers, impacts) from `audio/sfx/`
+- [ ] Mix background music ducking under voice tracks (-14 LUFS integrated)
+- [ ] Balance shot-to-shot exposure, contrast, and apply creative color grade
+
+### Phase 4: Final Master Export & Packaging
+- [ ] Render full-resolution 4K master into `exports/final_master/`
+- [ ] Cut 9:16 vertical short/teaser version for social channels
+- [ ] Design high-contrast thumbnail variant in `graphics/thumbnails/`
+- [ ] Complete delivery signoff with {{client_name}} and archive raw rushes
+
+---
+
+## ◈ Workspace Directory Map
+
+```
+{{project_name}}/
+├── footage/
+│   ├── raw/              # Primary A-roll camera takes and screen recordings
+│   └── broll/            # Contextual cutaway footage and archival clips
+├── audio/
+│   ├── voiceover/        # Clean vocal studio voiceover files
+│   ├── music/            # Licensed background music tracks
+│   └── sfx/              # Sound effects (impacts, risers, ambient foley)
+├── graphics/
+│   ├── titles/           # Lower-thirds, animated overlays, and transparent assets
+│   └── thumbnails/       # High-CTR thumbnail designs and layered project files
+├── projects/timeline/    # NLE project files (.drp, .prproj, .kdenlive)
+├── color_luts/           # 3D LUTs and color grading conversion profiles
+├── exports/
+│   ├── drafts/           # Timecoded preview renders for client feedback
+│   └── final_master/     # Master broadcast-quality 4K deliverables
+└── transcripts/          # Speech-to-text transcripts, script notes, and cue logs
+```
+
+---
+
+## ◈ Deliverables & Output Specifications
+- **Master 4K Video:** High-bitrate 3840x2160 MP4 / ProRes master
+- **Vertical Cutdown:** 1080x1920 9:16 version for Reels / Shorts / TikTok
+- **Normalized Audio:** Master audio mixed to {{target_loudness}}
+- **Custom Thumbnail:** 1280x720 PNG thumbnail optimized for high CTR
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "projects/timeline/project_notes.md".into(),
+                content: r#"# Timeline & Post-Production Notes
+
+- **Project:** {{project_name}}
+- **Target Resolution:** {{resolution}}
+- **Framerate:** {{target_fps}}
+- **Audio Standards:** Dialog peaks around -6 dB, Music ducked to -18 dB to -24 dB during speech.
+
+## Marker Cue Points
+- 00:00 - Hook / Cold Open
+- 00:15 - Title Sequence
+- 01:00 - Main Topic Deep Dive
+- 08:30 - Conclusion & Call to Action
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "transcripts/script_and_cue.md".into(),
+                content: r#"# Script & Visual Cue Log
+
+| Timecode | Spoken Voiceover / Dialog | Visual Cue / B-Roll Overlay |
+|---|---|---|
+| 00:00 - 00:05 | "Welcome back to the channel..." | Fast-paced montage of final result |
+| 00:05 - 00:15 | "Today we are building..." | Animated title graphic overlay |
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: ".gitignore".into(),
+                content: r#"# Video Editing Git Ignore
+footage/raw/*
+*.proxy.*
+*.pek
+*.cfa
+*.mov_temp
+*.mp4_temp
+projects/timeline/.cache/
+exports/drafts/*
+"#.into(),
+                required: true,
+                executable: false,
+            },
+        ],
+        outputs: vec![
+            "Broadcast Master 4K Video (3840x2160 MP4/ProRes)".into(),
+            "Vertical Cutdown Version (1080x1920 9:16)".into(),
+            "Master Audio Normalized to -14 LUFS".into(),
+            "High-CTR Custom Video Thumbnail (PNG)".into(),
+        ],
+    }
+}
+
+// =========================================================================
+// 5. PHOTO EDITING & RETOUCHING TEMPLATE
+// =========================================================================
+fn photo_edit_template() -> Template {
+    let mut vars = HashMap::new();
+    vars.insert("description".into(), "Photography retouching, RAW development & catalog".into());
+    vars.insert("client_name".into(), "Internal / Photography Client".into());
+    vars.insert("client_contact".into(), "photo@example.com".into());
+    vars.insert("project_status".into(), "Active (RAW Culling & Developing)".into());
+    vars.insert("target_date".into(), "TBD".into());
+    vars.insert("color_space".into(), "sRGB (Web) / AdobeRGB (Print)".into());
+    vars.insert("print_resolution".into(), "300 DPI".into());
+    vars.insert("camera_profile".into(), "Natural Tone / Linear RAW".into());
+
+    Template {
+        name: "photo-edit".into(),
+        description: "Photography retouching, RAW development & catalog (Lightroom/Darktable/GIMP/300DPI)".into(),
+        version: "2.0.0".into(),
+        kind: super::TemplateKind::Preset,
+        source_path: None,
+        variables: vars,
+        directories: vec![
+            "raw/selected".into(),
+            "raw/archive".into(),
+            "edits/layered".into(),
+            "presets/luts".into(),
+            "exports/high_res".into(),
             "exports/web_compressed".into(),
-            "presets".into(),
+            "exports/client_gallery".into(),
             "metadata".into(),
+            "contracts_releases".into(),
         ],
         files: vec![
-            super::TemplateFile {
-                path: "metadata/shot_list.md".into(),
-                content: r#"# Photography Session & Shot List: {{project_name}}
-
-**Photographer:** {{author}}  
-**Date:** {{date}}
-
-## Shot Checklist
-- [ ] Establishing shot / Wide environmental view
-- [ ] Medium close-up product / subject shot
-- [ ] Detail macro texture shot
-- [ ] Action / motion shot
-
-## Camera Settings Reference
-- **Color Space:** Adobe RGB / ProPhoto RGB
-- **Format:** Uncompressed RAW
-- **White Balance:** Daylight 5600K
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: r#"# Raw camera files (keep local/cold storage, ignore from git)
-*.CR2
-*.CR3
-*.NEF
-*.ARW
-*.DNG
-*.RAF
-*.RW2
-
-# Editing scratch caches
-*.xcf~
-*.kra~
-.thumbnails/
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
+            TemplateFile {
                 path: "README.md".into(),
-                content: r#"# {{project_name}} - Photo Editing Workspace
+                content: r#"# {{project_name}}
 
-Managed by **{{author}}**.
+> {{description}}
 
-## Workflow Structure
-1. `raw/`: Imported unprocessed camera RAW files.
-2. `selects/`: 5-star culled keepers chosen for final grading.
-3. `edits/`: Layered non-destructive retouching files (`.xcf` for GIMP, `.kra` for Krita).
-4. `presets/`: Darktable styles, LUTs, and color grading presets.
-5. `exports/`: High-resolution prints and optimized web JPEGs/WebP.
+---
 
-## Open-Source Photography Stack
-- **RAW Development:** Darktable / RawTherapee
-- **Advanced Retouching:** GIMP / Krita
-- **Digital Asset Management:** DigiKam
-"#
-                .into(),
+## ◈ Project & Client Information
+
+| Field | Detail |
+|---|---|
+| **Project Title** | {{project_name}} |
+| **Client / Organization** | {{client_name}} |
+| **Client Contact** | {{client_contact}} |
+| **Lead Photographer / Retoucher** | {{author}} |
+| **Created Date** | {{date}} |
+| **License** | {{license}} |
+| **Project Status** | {{project_status}} |
+| **Target Delivery** | {{target_date}} |
+
+### Photography Specifications
+- **Target Color Space:** {{color_space}}
+- **Print Resolution:** {{print_resolution}}
+- **Camera Calibration:** {{camera_profile}}
+- **Primary Deliverables:** Full-Resolution Archival TIFF/JPEG + Web-Optimized Client Proofing Gallery.
+
+---
+
+## ◈ Project Task List & Milestones
+
+### Phase 1: Shoot Preparation, Ingestion & Culling
+- [x] Initializing photography catalog and workspace folders
+- [ ] Transfer RAW camera media into `raw/selected/` and back up originals
+- [ ] Apply initial metadata tags, copyright notice, and lens profile corrections
+- [ ] First-pass star rating culling: eliminate out-of-focus and duplicate takes
+
+### Phase 2: RAW Developing & Color Correction
+- [ ] Balance exposure, highlight recovery, and shadow detail
+- [ ] Set accurate white balance using gray card / skin tone reference
+- [ ] Apply tone curves and uniform color grade across all selected photos
+- [ ] Export proofing contact sheet for client review and selections
+
+### Phase 3: Detailed Retouching & Fine Tuning
+- [ ] Perform non-destructive frequency separation / skin cleanup in `edits/layered/`
+- [ ] Clean background distractions, dust spots, and sensor artifacts
+- [ ] Dodge and burn to enhance depth, eye highlights, and subject separation
+- [ ] Crop and straighten compositions according to final print ratios
+
+### Phase 4: Master Exports, Web Gallery & Delivery
+- [ ] Export full-resolution 300 DPI master files into `exports/high_res/`
+- [ ] Generate compressed, sRGB-converted web versions in `exports/web_compressed/`
+- [ ] Prepare client gallery bundle in `exports/client_gallery/`
+- [ ] Deliver final images to {{client_name}} and archive RAW catalog
+
+---
+
+## ◈ Workspace Directory Map
+
+```
+{{project_name}}/
+├── raw/
+│   ├── selected/         # Star-rated culled RAW master camera files (.cr3, .nef, .arw)
+│   └── archive/          # Secondary / rejected takes kept for safety
+├── edits/layered/        # Multi-layer retouching projects (.psd, .xcf, .tif)
+├── presets/luts/         # Project-specific Darktable styles, LUTs, and XMP presets
+├── exports/
+│   ├── high_res/         # Full-resolution 300 DPI print-ready master exports
+│   ├── web_compressed/   # Optimized sRGB images sized for web & social media
+│   └── client_gallery/   # Watermarked proofing sets or curated final gallery
+├── metadata/             # Shot list sheets, equipment logs, and exposure data
+└── contracts_releases/   # Signed model releases, location permits, and client agreements
+```
+
+---
+
+## ◈ Deliverables & Output Specifications
+- **Archival Masters:** High-resolution 300 DPI uncompressed JPEG / TIFF
+- **Web Sized Delivery:** sRGB 2048px long-edge web-optimized images
+- **Color Grading Preset:** Exported `.xmp` / `.cube` LUT for style matching
+- **Client Gallery:** Complete curated photo selection ready for delivery
+"#.into(),
                 required: true,
                 executable: false,
             },
+            TemplateFile {
+                path: "metadata/shot_list.md".into(),
+                content: r#"# Photo Shoot Metadata & Shot List
+
+- **Project:** {{project_name}}
+- **Client:** {{client_name}}
+- **Location:** Studio / On-Location
+
+| Shot # | Description / Pose | Lighting Setup | Lens / Focal | Status |
+|---|---|---|---|---|
+| 01 | Hero Establishing Wide Shot | Natural Light + Key Softbox | 35mm f/2.8 | Completed |
+| 02 | Medium Subject Portrait | 3-Point Studio Lighting | 85mm f/1.8 | Completed |
+| 03 | Macro Product Close-up Detail | Rim Light + Diffused Top Light | 105mm f/5.6 | In Progress |
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "presets/grading_notes.md".into(),
+                content: r#"# Color Grading & Treatment Notes
+
+- **White Balance:** 5600K Daylight
+- **Contrast Curve:** S-Curve (+10 highlights, -5 shadows)
+- **Saturation:** Natural vibrance +12, desaturate greens -5
+- **Sharpening:** Radius 1.0, Masking 65
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: ".gitignore".into(),
+                content: r#"# Photo Editing Git Ignore
+raw/archive/*
+*.xmp.tmp
+*.cache
+*.thumb
+exports/web_compressed/*.tmp
+"#.into(),
+                required: true,
+                executable: false,
+            },
+        ],
+        outputs: vec![
+            "Archival High-Resolution Masters (300 DPI TIFF/JPEG)".into(),
+            "Optimized Web Gallery (sRGB, 2048px)".into(),
+            "Custom Development Presets & Grading Profiles".into(),
+            "Client Proofing Catalog".into(),
         ],
     }
 }
 
 // =========================================================================
-// 6. CREATIVE CODING & GENERATIVE ART (p5.js / GLSL / Python / Shaders)
+// 6. VECTOR ARTWORK & ILLUSTRATION TEMPLATE
 // =========================================================================
-fn creative_coding_template() -> Template {
+fn vector_artwork_template() -> Template {
     let mut vars = HashMap::new();
-    vars.insert("description".into(), "Generative art, GLSL shaders & creative algorithmic visuals".into());
+    vars.insert("description".into(), "Vector illustration, iconography & digital artwork".into());
+    vars.insert("client_name".into(), "Internal / Creative In-House".into());
+    vars.insert("client_contact".into(), "art@example.com".into());
+    vars.insert("project_status".into(), "Active (Vector Inking & Palette)".into());
+    vars.insert("target_date".into(), "TBD".into());
+    vars.insert("grid_system".into(), "24px / 32px Keyline Grid".into());
+    vars.insert("stroke_alignment".into(), "Consistent 2px Center-Aligned Strokes".into());
 
     Template {
+        name: "vector-artwork".into(),
+        description: "Vector illustration, iconography & digital artwork (Inkscape/Illustrator/Penpot/SVG)".into(),
+        version: "2.0.0".into(),
         kind: super::TemplateKind::Preset,
         source_path: None,
-        name: "creative-coding".into(),
-        description: "Creative coding, generative art & GLSL shaders (p5.js/Canvas/Shaders)".into(),
-        version: "1.0.0".into(),
         variables: vars,
-        outputs: vec![
-            "Generative Postcard Renders (PNG)".into(),
-            "Loop Animations (MP4)".into(),
-            "GLSL Shaders".into(),
-        ],
         directories: vec![
-            "src".into(),
-            "shaders".into(),
-            "palettes".into(),
-            "outputs/stills".into(),
-            "outputs/video".into(),
+            "sketches/concept".into(),
+            "sketches/thumbnails".into(),
+            "source/svg".into(),
+            "source/components".into(),
+            "colors/swatches".into(),
+            "exports/svg_minified".into(),
+            "exports/png_raster".into(),
+            "exports/pdf_vector".into(),
+            "assets/icons".into(),
+            "assets/illustrations".into(),
+            "references".into(),
         ],
         files: vec![
-            super::TemplateFile {
-                path: "index.html".into(),
-                content: r#"<!DOCTYPE html>
+            TemplateFile {
+                path: "README.md".into(),
+                content: r#"# {{project_name}}
+
+> {{description}}
+
+---
+
+## ◈ Project & Client Information
+
+| Field | Detail |
+|---|---|
+| **Project Title** | {{project_name}} |
+| **Client / Organization** | {{client_name}} |
+| **Client Contact** | {{client_contact}} |
+| **Illustrator / Author** | {{author}} |
+| **Created Date** | {{date}} |
+| **License** | {{license}} |
+| **Project Status** | {{project_status}} |
+| **Target Delivery** | {{target_date}} |
+
+### Visual Artwork Specifications
+- **Grid System:** {{grid_system}}
+- **Stroke Specification:** {{stroke_alignment}}
+- **Primary Formats:** Scalable Vector Graphics (SVG 1.1/2.0), Vector PDF, Raster PNG @ 1x/2x/4x.
+
+---
+
+## ◈ Project Task List & Milestones
+
+### Phase 1: Creative Brief & Concept Sketches
+- [x] Setting up illustration workspace and asset directories
+- [ ] Review visual style requirements and thematic tone with {{client_name}}
+- [ ] Sketch 10+ initial concept compositions in `sketches/thumbnails/`
+- [ ] Define harmonic color palette swatches in `colors/swatches/`
+
+### Phase 2: Vector Path Inking & Construction
+- [ ] Lay out primary geometric shapes and snap to pixel grid
+- [ ] Ink vector Bezier curves with minimal anchor point density
+- [ ] Verify clean boolean path operations (unions, subtractions, compounds)
+- [ ] Maintain organized layer hierarchy (Foreground, Midground, Background)
+
+### Phase 3: Shading, Lighting & Color Fill
+- [ ] Apply flat color fills from established palette
+- [ ] Add vector depth using linear/radial gradients, rim highlights, and cast shadows
+- [ ] Check optical balance at both micro (24px) and macro (1000px+) scale
+- [ ] Generate interim draft preview for client check-in
+
+### Phase 4: Path Optimization, Export & Delivery
+- [ ] Convert strokes to outlines where required for uniform scaling
+- [ ] Run SVG path minification and clean unused metadata/defs
+- [ ] Export production SVGs to `exports/svg_minified/`
+- [ ] Render raster PNGs at 1x, 2x, 4x into `exports/png_raster/`
+- [ ] Package final illustration bundle for {{client_name}}
+
+---
+
+## ◈ Workspace Directory Map
+
+```
+{{project_name}}/
+├── sketches/
+│   ├── thumbnails/       # Quick rough thumbnail brainstorms
+│   └── concept/          # Refined pencil sketches and scan tracings
+├── source/
+│   ├── svg/              # Master editable vector source files (.svg, .ai)
+│   └── components/       # Reusable vector symbols, glyphs, and building blocks
+├── colors/swatches/      # Color tokens, swatch palettes, and gradient presets
+├── exports/
+│   ├── svg_minified/     # Production web SVGs with stripped metadata
+│   ├── png_raster/       # High-DPI transparent raster renders (1x, 2x, 4x)
+│   └── pdf_vector/       # Vector PDF prints scalable to unlimited dimensions
+├── assets/
+│   ├── icons/            # Individual icon assets aligned to keyline grids
+│   └── illustrations/    # Hero illustrations, editorial artwork, and banners
+└── references/           # Moodboards, lighting references, and style guides
+```
+
+---
+
+## ◈ Deliverables & Output Specifications
+- **Master Vector File:** Full-featured SVG / AI source artwork
+- **Optimized Web SVGs:** Stripped, compressed, scalable vector assets
+- **High-DPI Raster Exports:** PNG / WebP rendered at 1x, 2x, and 4x
+- **Print Vector PDF:** Universal resolution-independent print deliverable
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "source/components/design_tokens.md".into(),
+                content: r#"# Vector Design Tokens & Rules
+
+- **Keyline Grid:** 24 x 24 px (Icons), 1920 x 1080 px (Hero Art)
+- **Base Stroke:** 2.0 px uniform
+- **Corner Radius:** 3.0 px standard on external sharp corners
+- **Color Palettes:**
+  - Ink Accent: #1E293B
+  - Primary Highlight: #38BDF8
+  - Secondary Accent: #F59E0B
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "references/art_direction.md".into(),
+                content: r#"# Art Direction & Aesthetic Standards
+
+- **Style:** Clean modern vector illustration with restrained isometric / flat depth.
+- **Lighting:** Consistent top-left 45-degree directional light.
+- **Line Quality:** Smooth Bezier curves without erratic anchor point clusters.
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: ".gitignore".into(),
+                content: r#"# Vector Artwork Git Ignore
+*.tmp
+*.bak
+*.autosave
+exports/png_raster/*.tmp
+"#.into(),
+                required: true,
+                executable: false,
+            },
+        ],
+        outputs: vec![
+            "Scalable Vector Graphics Master (SVG 1.1 / 2.0)".into(),
+            "Optimized Web Icon Set & Minified SVGs".into(),
+            "High-DPI Rendered Raster Artwork (PNG / WebP @ 1x/2x/4x)".into(),
+            "Print-Ready Vector Master Document (PDF / EPS)".into(),
+        ],
+    }
+}
+
+// =========================================================================
+// 7. WEBDESIGN & UI/UX TEMPLATE
+// =========================================================================
+fn webdesign_template() -> Template {
+    let mut vars = HashMap::new();
+    vars.insert("description".into(), "Web UI/UX design, responsive prototypes & design systems".into());
+    vars.insert("client_name".into(), "Internal / Product In-House".into());
+    vars.insert("client_contact".into(), "web@example.com".into());
+    vars.insert("project_status".into(), "Active (Wireframing & Prototyping)".into());
+    vars.insert("target_date".into(), "TBD".into());
+    vars.insert("responsive_breakpoints".into(), "Mobile (375px), Tablet (768px), Desktop (1440px)".into());
+    vars.insert("accessibility_target".into(), "WCAG 2.1 Level AA Compliant".into());
+
+    Template {
+        name: "webdesign".into(),
+        description: "Web UI/UX design, responsive prototypes & design systems (Figma/HTML/CSS/Tailwind)".into(),
+        version: "2.0.0".into(),
+        kind: super::TemplateKind::Preset,
+        source_path: None,
+        variables: vars,
+        directories: vec![
+            "research/user_personas".into(),
+            "research/competitor_analysis".into(),
+            "wireframes/low_fidelity".into(),
+            "wireframes/high_fidelity".into(),
+            "design_system/typography".into(),
+            "design_system/colors".into(),
+            "design_system/components".into(),
+            "assets/images".into(),
+            "assets/icons".into(),
+            "assets/fonts".into(),
+            "prototype/src".into(),
+            "prototype/dist".into(),
+            "exports/presentation".into(),
+        ],
+        files: vec![
+            TemplateFile {
+                path: "README.md".into(),
+                content: r#"# {{project_name}}
+
+> {{description}}
+
+---
+
+## ◈ Project & Client Information
+
+| Field | Detail |
+|---|---|
+| **Project Title** | {{project_name}} |
+| **Client / Organization** | {{client_name}} |
+| **Client Contact** | {{client_contact}} |
+| **Lead UI/UX Designer** | {{author}} |
+| **Created Date** | {{date}} |
+| **License** | {{license}} |
+| **Project Status** | {{project_status}} |
+| **Target Delivery** | {{target_date}} |
+
+### Digital Design Specifications
+- **Target Breakpoints:** {{responsive_breakpoints}}
+- **Accessibility Standard:** {{accessibility_target}}
+- **Core Deliverables:** Information Architecture, Responsive Wireframes, Design Tokens, and Interactive Prototype.
+
+---
+
+## ◈ Project Task List & Milestones
+
+### Phase 1: User Research, Site Architecture & Wireframing
+- [x] Initializing Web UI/UX workspace and prototype foundation
+- [ ] Conduct user persona discovery and journey mapping in `research/`
+- [ ] Define site navigation structure and page information hierarchy
+- [ ] Draft low-fidelity wireframes in `wireframes/low_fidelity/`
+
+### Phase 2: Design System & Token Architecture
+- [ ] Define typographic hierarchy (H1..H6, Body, Caption) in `design_system/`
+- [ ] Establish harmonic color tokens (Primary, Neutral, Success, Warning)
+- [ ] Build atomic component library (Buttons, Form Inputs, Cards, Modals)
+- [ ] Check contrast ratios to satisfy {{accessibility_target}}
+
+### Phase 3: High-Fidelity UI Mockups & Responsive Layouts
+- [ ] Design pixel-perfect desktop mockups (1440px grid)
+- [ ] Adapt layouts for tablet (768px) and mobile viewport (375px)
+- [ ] Curate and compress optimized SVG icons and WebP photography
+- [ ] Present design prototype to {{client_name}} for milestone signoff
+
+### Phase 4: Interactive HTML/CSS Prototype & Developer Handoff
+- [ ] Build clean semantic HTML5 / CSS3 starter in `prototype/src/`
+- [ ] Verify fluid flexbox and grid layouts across browser viewports
+- [ ] Export design token specifications in `design_system/design_tokens.md`
+- [ ] Deliver complete design assets and prototype bundle to {{client_name}}
+
+---
+
+## ◈ Workspace Directory Map
+
+```
+{{project_name}}/
+├── research/
+│   ├── user_personas/        # Target user archetypes and pain point logs
+│   └── competitor_analysis/  # Competitive benchmark audits
+├── wireframes/
+│   ├── low_fidelity/         # Rapid structural layout sketches and UX flows
+│   └── high_fidelity/        # Detailed visual layout designs
+├── design_system/
+│   ├── typography/           # Type scale, font pairings, and line heights
+│   ├── colors/               # Color tokens and accessibility contrast pairs
+│   └── components/           # Reusable UI component specs (buttons, cards, inputs)
+├── assets/
+│   ├── images/               # High-res photography and visual hero banners
+│   ├── icons/                # Clean SVG iconography set
+│   └── fonts/                # Web fonts (.woff2)
+├── prototype/
+│   ├── src/                  # Live semantic HTML, modern CSS, and JS prototype
+│   └── dist/                 # Bundled / minified client-facing demo
+└── exports/presentation/     # Stakeholder walkthrough slide decks and screenshots
+```
+
+---
+
+## ◈ Deliverables & Output Specifications
+- **High-Fidelity UI Mockups:** Multi-screen responsive layout designs
+- **Design System Tokens:** Comprehensive CSS variable / token documentation
+- **Interactive Prototype:** Responsive semantic HTML5 / modern CSS prototype
+- **Developer Handoff Package:** Sliced SVG icons, WebP images, and style guide
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "design_system/design_tokens.md".into(),
+                content: r#"# Design System Tokens
+
+## Colors
+- `--color-brand-primary`: `#2563EB` (Royal Blue)
+- `--color-brand-accent`: `#38BDF8` (Sky)
+- `--color-neutral-dark`: `#0F172A` (Slate 900)
+- `--color-neutral-light`: `#F8FAFC` (Slate 50)
+- `--color-border`: `#E2E8F0` (Slate 200)
+
+## Spacing Scale (8pt Grid)
+- `--space-1`: `4px`
+- `--space-2`: `8px`
+- `--space-3`: `12px`
+- `--space-4`: `16px`
+- `--space-6`: `24px`
+- `--space-8`: `32px`
+- `--space-12`: `48px`
+- `--space-16`: `64px`
+
+## Responsive Breakpoints
+- Mobile: `min-width: 375px`
+- Tablet: `min-width: 768px`
+- Desktop: `min-width: 1024px`
+- Wide: `min-width: 1440px`
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "prototype/src/index.html".into(),
+                content: r##"<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{project_name}} - Creative Canvas</title>
-  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
-  <style>
-    body { margin: 0; padding: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-    canvas { box-shadow: 0 0 30px rgba(0,255,180,0.2); }
-  </style>
+  <title>{{project_name}} - Prototype</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <script src="src/sketch.js"></script>
-</body>
-</html>
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/sketch.js".into(),
-                content: r##"// Generative Art Sketch: {{project_name}}
-// Author: {{author}}
-
-let seed;
-const PALETTE = ["#050505", "#00f0ff", "#ff0055", "#ffe600", "#ffffff"];
-
-function setup() {
-  createCanvas(1080, 1080);
-  seed = floor(random(999999));
-  randomSeed(seed);
-  noiseSeed(seed);
-  noLoop();
-  console.log("Seed:", seed);
-}
-
-function draw() {
-  background(PALETTE[0]);
-  noFill();
-  strokeWeight(2);
-
-  const numLines = 120;
-  for (let i = 0; i < numLines; i++) {
-    stroke(random(PALETTE.slice(1)));
-    beginShape();
-    for (let x = 0; x <= width; x += 20) {
-      const n = noise(x * 0.005, i * 0.05);
-      const y = map(n, 0, 1, height * 0.2, height * 0.8) + sin(x * 0.02) * 50;
-      vertex(x, y);
-    }
-    endShape();
-  }
-}
-
-function keyPressed() {
-  if (key === 's' || key === 'S') {
-    saveCanvas(`{{project_name}}_${seed}`, 'png');
-    console.log("Canvas saved!");
-  } else if (key === 'r' || key === 'R') {
-    seed = floor(random(999999));
-    randomSeed(seed);
-    noiseSeed(seed);
-    redraw();
-  }
-}
-"##
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "shaders/basic.frag".into(),
-                content: r#"#ifdef GL_ES
-precision mediump float;
-#endif
-
-uniform vec2 u_resolution;
-uniform float u_time;
-
-void main() {
-    vec2 st = gl_FragCoord.xy / u_resolution.xy;
-    vec3 color = 0.5 + 0.5 * cos(u_time + st.xyx + vec3(0.0, 2.0, 4.0));
-    gl_FragColor = vec4(color, 1.0);
-}
-"#
-                .into(),
-                required: false,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - Creative Coding & Generative Art
-
-Created by **{{author}}**.
-
-## How to Run
-1. Open `index.html` in any web browser (or serve with a live server).
-2. Press **`R`** to generate a new random seed.
-3. Press **`S`** to export a high-resolution PNG snapshot to `outputs/stills/`.
-
-## Stack & Tools
-- **Framework:** p5.js / HTML5 Canvas / WebGL
-- **Shaders:** GLSL Fragment Shaders
-- **Outputs:** Generative posters, wallpapers, and loop animations
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 7. RUST CODING TEMPLATE
-// =========================================================================
-fn rust_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "A modern Rust application".into());
-    vars.insert("version".into(), "0.1.0".into());
-    vars.insert("edition".into(), "2024".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "rust".into(),
-        description: "Rust binary app with CLI support and tests".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Standalone Compiled Binary".into(),
-            "Unit & Integration Test Suite".into(),
-            "Cargo Package".into(),
-        ],
-        directories: vec![
-            "src".into(),
-            "tests".into(),
-            ".github/workflows".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "Cargo.toml".into(),
-                content: r#"[package]
-name = "{{project_name}}"
-version = "{{version}}"
-edition = "{{edition}}"
-description = "{{description}}"
-authors = ["{{author}}"]
-license = "{{license}}"
-
-[dependencies]
-clap = { version = "4.5", features = ["derive"] }
-anyhow = "1.0"
-colored = "2.1"
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/main.rs".into(),
-                content: r#"use anyhow::Result;
-use clap::Parser;
-use colored::Colorize;
-
-#[derive(Parser, Debug)]
-#[command(name = "{{project_name}}", version = "{{version}}", about = "{{description}}")]
-struct Cli {
-    #[arg(short, long, default_value = "World")]
-    name: String,
-}
-
-fn main() -> Result<()> {
-    let cli = Cli::parse();
-    println!("{} {}", "Hello,".green().bold(), cli.name);
-    Ok(())
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "/target\n**/*.rs.bk\n*.log\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n\n```bash\ncargo run\n```\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 8. PYTHON CODING TEMPLATE
-// =========================================================================
-fn python_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "Modern Python package with pyproject.toml".into());
-    vars.insert("version".into(), "0.1.0".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "python".into(),
-        description: "Modern Python package with pyproject.toml & pytest".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Installable Python Package (Wheel)".into(),
-            "Pytest Suite".into(),
-        ],
-        directories: vec![
-            "src/{{project_name}}".into(),
-            "tests".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "pyproject.toml".into(),
-                content: r#"[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[project]
-name = "{{project_name}}"
-version = "{{version}}"
-description = "{{description}}"
-authors = [{ name = "{{author}}" }]
-readme = "README.md"
-requires-python = ">=3.10"
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/{{project_name}}/__init__.py".into(),
-                content: "__version__ = '{{version}}'\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/{{project_name}}/main.py".into(),
-                content: "def main():\n    print('Hello from {{project_name}}!')\n\nif __name__ == '__main__':\n    main()\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "__pycache__/\n*.py[cod]\n.venv/\nvenv/\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 9. TYPESCRIPT / NODE TEMPLATE
-// =========================================================================
-fn typescript_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "TypeScript Node.js application".into());
-    vars.insert("version".into(), "1.0.0".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "typescript".into(),
-        description: "TypeScript Node.js project with Vitest".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Compiled JavaScript (dist/)".into(),
-            "TypeScript Type Declarations (.d.ts)".into(),
-            "Vitest Suite".into(),
-        ],
-        directories: vec![
-            "src".into(),
-            "tests".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "package.json".into(),
-                content: r#"{
-  "name": "{{project_name}}",
-  "version": "{{version}}",
-  "description": "{{description}}",
-  "main": "dist/index.js",
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js"
-  },
-  "author": "{{author}}",
-  "license": "{{license}}"
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/index.ts".into(),
-                content: "console.log('Hello from {{project_name}}!');\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "node_modules/\ndist/\n*.log\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 10. GO TEMPLATE
-// =========================================================================
-fn go_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "Go CLI application".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "go".into(),
-        description: "Go CLI application with standard layout".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Standalone Go Executable Binary".into(),
-            "Go Module & Tests".into(),
-        ],
-        directories: vec![
-            "cmd/{{project_name}}".into(),
-            "pkg".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "go.mod".into(),
-                content: "module {{project_name}}\n\ngo 1.23\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "cmd/{{project_name}}/main.go".into(),
-                content: "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello from {{project_name}}!\")\n}\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "bin/\n*.exe\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 11. WEB TEMPLATE
-// =========================================================================
-fn web_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "Clean HTML5, CSS & JS responsive starter".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "web".into(),
-        description: "Clean HTML5, modern CSS & vanilla JS web starter".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Responsive Webpage (HTML/CSS/JS)".into(),
-            "Web Production Assets".into(),
-        ],
-        directories: vec![
-            "css".into(),
-            "js".into(),
-            "assets".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "index.html".into(),
-                content: r#"<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>{{project_name}}</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-  <h1>Welcome to {{project_name}}</h1>
-  <script src="js/app.js"></script>
-</body>
-</html>
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "css/style.css".into(),
-                content: "body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; }\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "js/app.js".into(),
-                content: "console.log('{{project_name}} loaded.');\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 12. MINIMAL TEMPLATE
-// =========================================================================
-fn minimal_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "Minimal structure".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "minimal".into(),
-        description: "Minimal structure with src, docs and README".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Clean Project Structure".into(),
-        ],
-        directories: vec![
-            "src".into(),
-            "docs".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "*.tmp\n*.bak\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 13. CLIENT PROJECT TEMPLATE
-// =========================================================================
-fn client_project_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "Professional client work project".into());
-    vars.insert("client_name".into(), "Client".into());
-    vars.insert("deadline".into(), "TBD".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "client-project".into(),
-        description: "Client work (briefs, assets, review drafts, invoices, deliverables)".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Client Handover Package (ZIP)".into(),
-            "Project Brief & Contract Specs".into(),
-            "Itemized Invoices (PDF)".into(),
-            "Delivery Checklist".into(),
-        ],
-        directories: vec![
-            "brief_and_contracts".into(),
-            "assets/client_provided".into(),
-            "assets/working".into(),
-            "drafts_for_review".into(),
-            "deliverables_final".into(),
-            "invoices".into(),
-            "notes".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "brief_and_contracts/project_brief.md".into(),
-                content: r#"# Client Project Brief: {{project_name}}
-
-**Client:** {{client_name}}  
-**Lead:** {{author}}  
-**Target Deadline:** {{deadline}}  
-
-## Project Objectives & Scope
-- Deliverable 1: 
-- Deliverable 2: 
-
-## Revision Policy
-- 2 rounds of revisions included. Additional revisions billed at standard hourly rate.
-
-## Final Delivery Formats
-- [ ] High-resolution master exports
-- [ ] Source files (SVG, Blender, CAD, or Code repo)
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "deliverables_final/checklist.md".into(),
-                content: r#"# Final Delivery Checklist: {{project_name}}
-
-- [ ] All client deliverables verified against brief
-- [ ] High-resolution / production renders exported
-- [ ] Source assets packaged
-- [ ] Final invoice generated in `invoices/`
-- [ ] Client sign-off received
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}} (Client: {{client_name}})\n\n{{description}}\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "invoices/confidential*\n*.tmp\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 14. C APPLICATION (C11 / Makefile / Standard layout)
-// =========================================================================
-fn c_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "A high-performance C application".into());
-    vars.insert("standard".into(), "c11".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "c".into(),
-        description: "C application with C11, Makefile, and standard layout".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Compiled C Binary (bin/)".into(),
-            "Unit Test Suite".into(),
-        ],
-        directories: vec![
-            "src".into(),
-            "include".into(),
-            "tests".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "Makefile".into(),
-                content: r#"CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -std={{standard}} -O2 -Iinclude
-TARGET = bin/{{project_name}}
-SRCS = $(wildcard src/*.c)
-OBJS = $(SRCS:src/%.c=build/%.o)
-
-all: $(TARGET)
-
-$(TARGET): $(OBJS) | bin
-	$(CC) $(CFLAGS) -o $@ $^
-
-build/%.o: src/%.c | build
-	$(CC) $(CFLAGS) -c $< -o $@
-
-bin build:
-	mkdir -p $@
-
-test: all
-	$(CC) $(CFLAGS) tests/test_main.c src/lib.c -o bin/test_suite
-	./bin/test_suite
-
-clean:
-	rm -rf bin build
-
-.PHONY: all test clean
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "include/lib.h".into(),
-                content: r#"#pragma once
-
-#define APP_VERSION "0.1.0"
-
-int add(int a, int b);
-void print_banner(const char* name);
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/main.c".into(),
-                content: r#"#include <stdio.h>
-#include "lib.h"
-
-int main(void) {
-    print_banner("{{project_name}}");
-    printf("1 + 2 = %d\n", add(1, 2));
-    return 0;
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/lib.c".into(),
-                content: r#"#include <stdio.h>
-#include "lib.h"
-
-int add(int a, int b) {
-    return a + b;
-}
-
-void print_banner(const char* name) {
-    printf("[APP] Welcome to %s (v%s)\n", name, APP_VERSION);
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "tests/test_main.c".into(),
-                content: r#"#include <stdio.h>
-#include <assert.h>
-#include "lib.h"
-
-int main(void) {
-    printf("[TEST] Running unit tests...\n");
-    assert(add(2, 3) == 5);
-    assert(add(-1, 1) == 0);
-    printf("[TEST] All tests passed successfully.\n");
-    return 0;
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "bin/\nbuild/\n*.o\n*.a\n*.so\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n\nAuthor: {{author}}\n\n## Build & Run\n\n```bash\nmake\n./bin/{{project_name}}\nmake test\n```\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 15. C++ APPLICATION (C++20 / CMake)
-// =========================================================================
-fn cpp_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "Modern C++ application with CMake".into());
-    vars.insert("standard".into(), "20".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "cpp".into(),
-        description: "Modern C++20 project with CMake, include dirs, and tests".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Compiled C++ Executable & Library".into(),
-            "CTest Test Runner".into(),
-        ],
-        directories: vec![
-            "src".into(),
-            "include/{{project_name}}".into(),
-            "tests".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "CMakeLists.txt".into(),
-                content: r#"cmake_minimum_required(VERSION 3.20)
-project({{project_name}} VERSION 0.1.0 LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD {{standard}})
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-add_library({{project_name}}_core
-    src/core.cpp
-)
-target_include_directories({{project_name}}_core PUBLIC include)
-
-add_executable({{project_name}}
-    src/main.cpp
-)
-target_link_libraries({{project_name}} PRIVATE {{project_name}}_core)
-
-enable_testing()
-add_executable(test_suite
-    tests/test_main.cpp
-)
-target_link_libraries(test_suite PRIVATE {{project_name}}_core)
-add_test(NAME CoreTest COMMAND test_suite)
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "include/{{project_name}}/core.hpp".into(),
-                content: r#"#pragma once
-
-#include <string>
-#include <string_view>
-
-namespace {{project_name}} {
-
-class Service {
-public:
-    explicit Service(std::string name);
-    [[nodiscard]] std::string greet(std::string_view target) const;
-    [[nodiscard]] const std::string& name() const noexcept;
-
-private:
-    std::string name_;
-};
-
-} // namespace {{project_name}}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/core.cpp".into(),
-                content: r#"#include "{{project_name}}/core.hpp"
-#include <utility>
-
-namespace {{project_name}} {
-
-Service::Service(std::string name) : name_(std::move(name)) {}
-
-std::string Service::greet(std::string_view target) const {
-    return "Hello, " + std::string(target) + "! Welcome to " + name_;
-}
-
-const std::string& Service::name() const noexcept {
-    return name_;
-}
-
-} // namespace {{project_name}}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/main.cpp".into(),
-                content: r#"#include <iostream>
-#include "{{project_name}}/core.hpp"
-
-int main() {
-    {{project_name}}::Service app("{{project_name}}");
-    std::cout << app.greet("Developer") << std::endl;
-    return 0;
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "tests/test_main.cpp".into(),
-                content: r#"#include <cassert>
-#include <iostream>
-#include "{{project_name}}/core.hpp"
-
-int main() {
-    std::cout << "[TEST] Running {{project_name}} tests...\n";
-    {{project_name}}::Service s("TestApp");
-    assert(s.name() == "TestApp");
-    std::string msg = s.greet("World");
-    assert(!msg.empty());
-    std::cout << "[TEST] All tests passed!\n";
-    return 0;
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "build/\ncmake-build-*/\n*.o\n*.a\n*.so\ncompile_commands.json\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n\nAuthor: {{author}}\n\n## Build & Test\n\n```bash\ncmake -B build -DCMAKE_BUILD_TYPE=Release\ncmake --build build\nctest --test-dir build --output-on-failure\n./build/{{project_name}}\n```\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 16. REACT TEMPLATE (React + TypeScript + Vite)
-// =========================================================================
-fn react_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "Modern React with TypeScript and Vite".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "react".into(),
-        description: "Modern React + TypeScript + Vite single-page application".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Production Web Bundle (dist/)".into(),
-            "Optimized Static Assets".into(),
-        ],
-        directories: vec![
-            "src/components".into(),
-            "src/assets".into(),
-            "public".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "package.json".into(),
-                content: r#"{
-  "name": "{{project_name}}",
-  "private": true,
-  "version": "0.1.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.0",
-    "typescript": "^5.4.5",
-    "vite": "^5.2.11"
-  }
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "vite.config.ts".into(),
-                content: r#"import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: 3000,
-    open: true,
-  },
-});
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "tsconfig.json".into(),
-                content: r#"{
-  "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
-  },
-  "include": ["src"]
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "index.html".into(),
-                content: r#"<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{project_name}}</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/main.tsx".into(),
-                content: r#"import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/App.tsx".into(),
-                content: r#"import { useState } from 'react';
-import './App.css';
-
-export default function App() {
-  const [count, setCount] = useState(0);
-
-  return (
-    <div className="container">
-      <header className="header">
-        <h1>{{project_name}}</h1>
-        <p className="subtitle">{{description}}</p>
-      </header>
-      <main className="card">
-        <button className="button" onClick={() => setCount((c) => c + 1)}>
-          Count is {count}
-        </button>
-        <p>Edit <code>src/App.tsx</code> and save to test HMR.</p>
-      </main>
+  <header class="navbar">
+    <div class="container navbar-content">
+      <div class="brand-logo">{{project_name}}</div>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#about">About</a>
+        <a href="#contact" class="btn btn-primary">Get Started</a>
+      </nav>
     </div>
-  );
-}
-"#
-                .into(),
+  </header>
+
+  <main>
+    <section class="hero container">
+      <h1 class="hero-title">Modern Design Built for {{client_name}}</h1>
+      <p class="hero-subtitle">{{description}}</p>
+      <div class="hero-actions">
+        <a href="#explore" class="btn btn-primary">Explore Prototype</a>
+        <a href="#docs" class="btn btn-secondary">Design Specs</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer container">
+    <p>&copy; {{year}} {{client_name}}. Designed by {{author}}. All rights reserved.</p>
+  </footer>
+</body>
+</html>
+"##.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
-                path: "src/App.css".into(),
-                content: r#".container {
-  max-width: 800px;
+            TemplateFile {
+                path: "prototype/src/styles.css".into(),
+                content: r#"/* Modern CSS Reset & Design Tokens */
+:root {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-dark: #0F172A;
+  --color-muted: #64748B;
+  --color-bg: #FFFFFF;
+  --color-surface: #F8FAFC;
+  --color-border: #E2E8F0;
+  --max-width: 1200px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-dark);
+  background-color: var(--color-bg);
+  line-height: 1.6;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--max-width);
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0 1.5rem;
+}
+
+.navbar {
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 4.5rem;
+}
+
+.brand-logo {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--color-primary);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--color-dark);
+  font-weight: 500;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.65rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #FFFFFF !important;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-secondary {
+  border: 1px solid var(--color-border);
+  color: var(--color-dark);
+}
+
+.hero {
+  padding: 6rem 1.5rem;
   text-align: center;
 }
-.header {
-  margin-bottom: 2rem;
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1.25rem;
 }
-.subtitle {
-  color: #64748b;
-  font-size: 1.1rem;
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--color-muted);
+  max-width: 42rem;
+  margin: 0 auto 2.5rem;
 }
-.card {
-  padding: 2rem;
-  border-radius: 8px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-}
-.button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  background-color: #0f172a;
-  color: #fff;
-  cursor: pointer;
-  transition: opacity 0.25s;
-}
-.button:hover {
-  opacity: 0.85;
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/index.css".into(),
-                content: r#":root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  color: #0f172a;
-  background-color: #ffffff;
-}
-body {
-  margin: 0;
+
+.hero-actions {
   display: flex;
-  min-height: 100vh;
+  justify-content: center;
+  gap: 1rem;
 }
-#root {
-  width: 100%;
+
+.footer {
+  padding: 3rem 1.5rem;
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 0.875rem;
 }
-"#
-                .into(),
+"#.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
+            TemplateFile {
                 path: ".gitignore".into(),
-                content: "node_modules/\ndist/\n*.local\n.DS_Store\n".into(),
+                content: r#"# Web Design Git Ignore
+prototype/dist/*
+*.tmp
+*.bak
+.DS_Store
+"#.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n\nAuthor: {{author}}\n\n## Development\n\n```bash\nnpm install\nnpm run dev\n```\n\n## Production Build\n\n```bash\nnpm run build\n```\n".into(),
-                required: true,
-                executable: false,
-            },
+        ],
+        outputs: vec![
+            "Multi-Screen Responsive UI Wireframes & Mockups".into(),
+            "Complete Design System Tokens & Component Guide".into(),
+            "Interactive HTML5/CSS3 Front-End Prototype".into(),
+            "Production Asset Handoff Directory (SVG/WebP)".into(),
         ],
     }
 }
 
 // =========================================================================
-// 17. FASTAPI TEMPLATE (Python REST API Backend)
+// 8. CODING & SOFTWARE DEVELOPMENT TEMPLATE
 // =========================================================================
-fn fastapi_template() -> Template {
+fn coding_template() -> Template {
     let mut vars = HashMap::new();
-    vars.insert("description".into(), "Production-ready FastAPI RESTful web service".into());
-    vars.insert("port".into(), "8000".into());
+    vars.insert("description".into(), "Software development project with clean architecture & tests".into());
+    vars.insert("client_name".into(), "Internal / Engineering In-House".into());
+    vars.insert("client_contact".into(), "dev@example.com".into());
+    vars.insert("project_status".into(), "Active (Implementation & Testing)".into());
+    vars.insert("target_date".into(), "TBD".into());
+    vars.insert("target_platform".into(), "Cross-Platform (Linux / macOS / Windows / Cloud)".into());
+    vars.insert("testing_framework".into(), "Automated Unit & Integration Suites".into());
 
     Template {
+        name: "coding".into(),
+        description: "Software development project with clean architecture, tests & build automation".into(),
+        version: "2.0.0".into(),
         kind: super::TemplateKind::Preset,
         source_path: None,
-        name: "fastapi".into(),
-        description: "FastAPI Python REST backend with Pydantic schemas and pytest".into(),
-        version: "1.0.0".into(),
         variables: vars,
-        outputs: vec![
-            "FastAPI REST API Service".into(),
-            "Interactive Swagger / OpenAPI Docs".into(),
-            "Production Docker Image".into(),
-        ],
-        directories: vec![
-            "app/api/routes".into(),
-            "app/core".into(),
-            "app/models".into(),
-            "app/schemas".into(),
-            "tests".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "app/main.py".into(),
-                content: r#"from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import items
-from app.core.config import settings
-
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version="0.1.0",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(items.router, prefix="/api/v1/items", tags=["items"])
-
-@app.get("/health")
-def health_check():
-    return {"status": "healthy", "app": settings.PROJECT_NAME}
-
-@app.get("/")
-def root():
-    return {"message": f"Welcome to {settings.PROJECT_NAME}"}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "app/core/config.py".into(),
-                content: r#"class Settings:
-    PROJECT_NAME: str = "{{project_name}}"
-    API_V1_STR: str = "/api/v1"
-
-settings = Settings()
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "app/schemas/item.py".into(),
-                content: r#"from pydantic import BaseModel
-from typing import Optional
-
-class ItemBase(BaseModel):
-    title: str
-    description: Optional[str] = None
-    price: float
-
-class ItemCreate(ItemBase):
-    pass
-
-class ItemResponse(ItemBase):
-    id: int
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "app/api/routes/items.py".into(),
-                content: r#"from fastapi import APIRouter
-from typing import List
-from app.schemas.item import ItemCreate, ItemResponse
-
-router = APIRouter()
-
-items_db: List[dict] = [
-    {"id": 1, "title": "First Sample", "description": "Pre-loaded item", "price": 19.99}
-]
-
-@router.get("/", response_model=List[ItemResponse])
-def get_items():
-    return items_db
-
-@router.post("/", response_model=ItemResponse)
-def create_item(item: ItemCreate):
-    new_item = {"id": len(items_db) + 1, **item.model_dump()}
-    items_db.append(new_item)
-    return new_item
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "tests/test_main.py".into(),
-                content: r#"from fastapi.testclient import TestClient
-from app.main import app
-
-client = TestClient(app)
-
-def test_root():
-    response = client.get("/")
-    assert response.status_code == 200
-    assert "Welcome" in response.json()["message"]
-
-def test_health():
-    response = client.get("/health")
-    assert response.status_code == 200
-    assert response.json()["status"] == "healthy"
-
-def test_get_items():
-    response = client.get("/api/v1/items/")
-    assert response.status_code == 200
-    assert isinstance(response.json(), list)
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "requirements.txt".into(),
-                content: "fastapi>=0.110.0\nuvicorn[standard]>=0.28.0\npydantic>=2.6.0\npytest>=8.0.0\nhttpx>=0.27.0\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "Dockerfile".into(),
-                content: r#"FROM python:3.12-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-EXPOSE {{port}}
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "{{port}}"]
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "__pycache__/\n*.py[cod]\n.venv/\nvenv/\n.env\n.pytest_cache/\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n\nAuthor: {{author}}\n\n## Running Locally\n\n```bash\npython3 -m venv .venv\nsource .venv/bin/activate\npip install -r requirements.txt\nuvicorn app.main:app --reload --port {{port}}\n```\n\nInteractive Swagger API docs available at: `http://localhost:{{port}}/docs`\n\n## Tests\n\n```bash\npytest\n```\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 18. DATA SCIENCE TEMPLATE (Python / Notebooks / Pipeline)
-// =========================================================================
-fn data_science_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "Data analysis, exploration, and machine learning workspace".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "data-science".into(),
-        description: "Data science and ML workspace (data, notebooks, src, models)".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Exploratory Data Analysis Notebooks".into(),
-            "Trained Machine Learning Models".into(),
-            "Visual Figures & Reports".into(),
-        ],
-        directories: vec![
-            "data/raw".into(),
-            "data/processed".into(),
-            "notebooks".into(),
-            "src/data".into(),
-            "src/models".into(),
-            "models".into(),
-            "reports/figures".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "notebooks/01_exploration.ipynb".into(),
-                content: r##"{
- "cells": [
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "# {{project_name}} - Exploratory Data Analysis\n",
-    "\n",
-    "Author: {{author}}"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "import pandas as pd\n",
-    "import numpy as np\n",
-    "import matplotlib.pyplot as plt\n",
-    "import seaborn as sns\n",
-    "\n",
-    "print('Data Science environment initialized.')"
-   ]
-  }
- ],
- "metadata": {
-  "language_info": {
-   "name": "python"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 2
-}
-"##
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/__init__.py".into(),
-                content: "\"\"\"{{project_name}} package.\"\"\"\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/data/load_data.py".into(),
-                content: r#"from pathlib import Path
-import pandas as pd
-
-DATA_DIR = Path(__file__).resolve().parents[2] / "data"
-
-def load_raw_dataset(filename: str) -> pd.DataFrame:
-    file_path = DATA_DIR / "raw" / filename
-    if not file_path.exists():
-        raise FileNotFoundError(f"Dataset not found at {file_path}")
-    return pd.read_csv(file_path)
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/models/train.py".into(),
-                content: r#"def train_baseline_model():
-    print("Training baseline model...")
-    return {"accuracy": 0.95}
-
-if __name__ == "__main__":
-    train_baseline_model()
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "requirements.txt".into(),
-                content: "numpy>=1.26.0\npandas>=2.2.0\nscikit-learn>=1.4.0\nmatplotlib>=3.8.0\nseaborn>=0.13.0\njupyterlab>=4.1.0\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "data/raw/*\n!data/raw/.gitkeep\ndata/processed/*\n!data/processed/.gitkeep\nmodels/*.pkl\n__pycache__/\n.ipynb_checkpoints/\n.venv/\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n\nAuthor: {{author}}\n\n## Setup\n\n```bash\npython3 -m venv .venv\nsource .venv/bin/activate\npip install -r requirements.txt\njupyter lab\n```\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 19. JAVA TEMPLATE (Maven)
-// =========================================================================
-fn java_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "Java application with Maven".into());
-    vars.insert("group_id".into(), "com.example".into());
-    vars.insert("java_version".into(), "21".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "java".into(),
-        description: "Java application with Maven, standard directory layout, and JUnit 5".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Packaged JAR Application".into(),
-            "JUnit 5 Test Report".into(),
-        ],
-        directories: vec![
-            "src/main/java/com/example".into(),
-            "src/main/resources".into(),
-            "src/test/java/com/example".into(),
-            "src/test/resources".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "pom.xml".into(),
-                content: r#"<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <groupId>{{group_id}}</groupId>
-    <artifactId>{{project_name}}</artifactId>
-    <version>0.1.0</version>
-    <packaging>jar</packaging>
-
-    <name>{{project_name}}</name>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>{{java_version}}</maven.compiler.source>
-        <maven.compiler.target>{{java_version}}</maven.compiler.target>
-        <junit.version>5.10.2</junit.version>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
-            </plugin>
-        </plugins>
-    </build>
-</project>
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/main/java/com/example/App.java".into(),
-                content: r#"package com.example;
-
-public class App {
-    public static void main(String[] args) {
-        System.out.println("Hello from {{project_name}}!");
-    }
-
-    public int add(int a, int b) {
-        return a + b;
-    }
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/test/java/com/example/AppTest.java".into(),
-                content: r#"package com.example;
-
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-
-class AppTest {
-    @Test
-    void testAdd() {
-        App app = new App();
-        assertEquals(5, app.add(2, 3));
-    }
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "target/\n*.class\n.idea/\n*.iml\n.vscode/\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n\nAuthor: {{author}}\n\n## Build & Test\n\n```bash\nmvn clean compile\nmvn test\nmvn package\n```\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 20. BASH CLI & AUTOMATION TEMPLATE
-// =========================================================================
-fn bash_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "POSIX shell CLI tool and automation script suite".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "bash".into(),
-        description: "POSIX shell CLI tool and automation script suite with Makefile".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Executable CLI Shell Tool".into(),
-            "Shell Test Suite".into(),
-            "System Installation (Makefile)".into(),
-        ],
-        directories: vec![
-            "bin".into(),
-            "lib".into(),
-            "tests".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "bin/{{project_name}}".into(),
-                content: r#"#!/usr/bin/env bash
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LIB_DIR="${SCRIPT_DIR}/../lib"
-
-source "${LIB_DIR}/utils.sh"
-
-VERSION="0.1.0"
-
-show_help() {
-    cat <<EOF
-Usage: {{project_name}} [COMMAND] [OPTIONS]
-
-{{description}}
-
-Commands:
-    run       Execute standard workflow
-    version   Display version
-    help      Show this help message
-
-Options:
-    -v, --verbose   Enable debug output
-EOF
-}
-
-cmd_run() {
-    log_info "Executing {{project_name}} standard task..."
-    log_success "Task completed."
-}
-
-main() {
-    local cmd="${1:-help}"
-    case "$cmd" in
-        run)
-            cmd_run
-            ;;
-        version|-V|--version)
-            echo "{{project_name}} v${VERSION}"
-            ;;
-        help|-h|--help)
-            show_help
-            ;;
-        *)
-            log_error "Unknown command: $cmd"
-            show_help
-            exit 1
-            ;;
-    esac
-}
-
-main "$@"
-"#
-                .into(),
-                required: true,
-                executable: true,
-            },
-            super::TemplateFile {
-                path: "lib/utils.sh".into(),
-                content: r#"#!/usr/bin/env bash
-
-log_info() {
-    echo "[INFO] $*"
-}
-
-log_success() {
-    echo "[OK] $*"
-}
-
-log_error() {
-    echo "[ERROR] $*" >&2
-}
-
-check_cmd() {
-    command -v "$1" >/dev/null 2>&1 || { log_error "Required command '$1' not found."; exit 1; }
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "tests/test_cli.sh".into(),
-                content: r#"#!/usr/bin/env bash
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BIN="${SCRIPT_DIR}/../bin/{{project_name}}"
-
-echo "[TEST] Running CLI tests..."
-"${BIN}" version | grep -q "{{project_name}}"
-"${BIN}" help | grep -q "Usage"
-echo "[TEST] All CLI tests passed."
-"#
-                .into(),
-                required: true,
-                executable: true,
-            },
-            super::TemplateFile {
-                path: "Makefile".into(),
-                content: r#"BIN = bin/{{project_name}}
-
-test:
-	bash tests/test_cli.sh
-
-install:
-	mkdir -p $(HOME)/.local/bin
-	cp $(BIN) $(HOME)/.local/bin/
-
-.PHONY: test install
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "*.tmp\n*.log\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n\nAuthor: {{author}}\n\n## Usage\n\n```bash\n./bin/{{project_name}} run\n./bin/{{project_name}} help\nmake test\n```\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 21. DOCKER & DEVOPS TEMPLATE
-// =========================================================================
-fn docker_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "Containerized service environment with compose and proxy".into());
-    vars.insert("port".into(), "8080".into());
-    vars.insert("service_name".into(), "app".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "docker".into(),
-        description: "Dockerized microservice environment with compose and reverse proxy".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Multi-Container Docker Environment".into(),
-            "Nginx Reverse Proxy Configuration".into(),
-            "Deployment Scripts".into(),
-        ],
         directories: vec![
             "src".into(),
-            "nginx".into(),
+            "tests".into(),
+            "docs/architecture".into(),
+            "docs/api".into(),
             "scripts".into(),
+            "config".into(),
+            "build".into(),
         ],
         files: vec![
-            super::TemplateFile {
-                path: "docker-compose.yml".into(),
-                content: r#"services:
-  {{service_name}}:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: {{project_name}}-app
-    restart: unless-stopped
-    ports:
-      - "{{port}}:{{port}}"
-    env_file:
-      - .env
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:{{port}}/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  proxy:
-    image: nginx:alpine
-    container_name: {{project_name}}-proxy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - {{service_name}}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "Dockerfile".into(),
-                content: r#"FROM alpine:3.19
-RUN apk add --no-cache curl ca-certificates
-WORKDIR /app
-COPY src/ .
-EXPOSE {{port}}
-USER guest
-CMD ["sh", "-c", "echo '{{project_name}} running on port {{port}}' && sleep infinity"]
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "nginx/nginx.conf".into(),
-                content: r#"events { worker_connections 1024; }
-
-http {
-    upstream backend {
-        server {{service_name}}:{{port}};
-    }
-
-    server {
-        listen 80;
-        location / {
-            proxy_pass http://backend;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-        }
-    }
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".env.example".into(),
-                content: "ENVIRONMENT=production\nAPP_PORT={{port}}\nLOG_LEVEL=info\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "scripts/deploy.sh".into(),
-                content: r#"#!/usr/bin/env bash
-set -euo pipefail
-echo "[DEPLOY] Building and starting {{project_name}} stack..."
-docker compose up -d --build
-echo "[DEPLOY] Stack online."
-"#
-                .into(),
-                required: true,
-                executable: true,
-            },
-            super::TemplateFile {
-                path: ".dockerignore".into(),
-                content: ".git/\n.env\n*.tmp\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
+            TemplateFile {
                 path: "README.md".into(),
-                content: "# {{project_name}}\n\n{{description}}\n\nAuthor: {{author}}\n\n## Deployment\n\n```bash\ncp .env.example .env\ndocker compose up -d --build\ndocker compose ps\n```\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 22. DOCS TEMPLATE (Markdown & MkDocs Site)
-// =========================================================================
-fn docs_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("description".into(), "Technical documentation and knowledge base site".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "docs".into(),
-        description: "Documentation and knowledge base site with Markdown structure".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Static HTML Documentation Site (site/)".into(),
-            "Searchable Technical Guides".into(),
-        ],
-        directories: vec![
-            "docs/getting-started".into(),
-            "docs/guides".into(),
-            "docs/reference".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "mkdocs.yml".into(),
-                content: r#"site_name: {{project_name}}
-site_description: {{description}}
-site_author: {{author}}
-
-theme:
-  name: material
-  palette:
-    primary: indigo
-    accent: cyan
-
-nav:
-  - Home: index.md
-  - Getting Started:
-      - Quickstart: getting-started/quickstart.md
-  - Guides:
-      - Architecture: guides/architecture.md
-  - Reference:
-      - API: reference/api.md
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "docs/index.md".into(),
-                content: r#"# Welcome to {{project_name}}
-
-{{description}}
-
-Managed by **{{author}}**.
-
-## Overview
-This documentation site provides setup guides, system architecture details, and reference materials.
-
-## Quick Links
-- [Quickstart Guide](getting-started/quickstart.md)
-- [Architecture](guides/architecture.md)
-- [API Reference](reference/api.md)
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "docs/getting-started/quickstart.md".into(),
-                content: r#"# Quickstart Guide
-
-Get up and running with {{project_name}} in under 5 minutes.
-
-## Prerequisites
-- Git
-- Standard tooling
-
-## Installation
-Follow the project installation steps in the main README.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "docs/guides/architecture.md".into(),
-                content: r#"# Architecture Overview
-
-This document outlines the core components and design patterns used in {{project_name}}.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "docs/reference/api.md".into(),
-                content: r#"# API Reference
-
-Detailed technical reference for {{project_name}}.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "site/\n.cache/\n*.tmp\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: "# {{project_name}} Documentation\n\n{{description}}\n\n## Preview Docs Locally\n\n```bash\npip install mkdocs-material\nmkdocs serve\n```\n\nBuild static HTML site:\n\n```bash\nmkdocs build\n```\n".into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 23. PODCAST SERIES & EPISODES (Audio / Show Notes / Transcripts / Art)
-// =========================================================================
-fn podcast_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("show_title".into(), "The Creator Broadcast".into());
-    vars.insert("frequency".into(), "Weekly".into());
-    vars.insert("description".into(), "Podcast audio series and episode production studio".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "podcast".into(),
-        description: "Podcast series & episode studio (audio, show notes, transcripts, artwork)".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Mastered Episodes (MP3/WAV)".into(),
-            "Show Notes & Episode Guides (Markdown)".into(),
-            "Timestamps & Full Transcripts (TXT)".into(),
-            "Cover Artwork (3000x3000px RGB)".into(),
-        ],
-        directories: vec![
-            "episodes/ep01/raw_audio".into(),
-            "episodes/ep01/edit_session".into(),
-            "episodes/ep01/exports".into(),
-            "assets/music_stems".into(),
-            "assets/sound_effects".into(),
-            "assets/artwork/cover".into(),
-            "assets/artwork/social".into(),
-            "transcripts".into(),
-            "show_notes".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "show_notes/template.md".into(),
-                content: r#"# Episode [Number]: [Episode Title]
-
-**Host:** {{author}}  
-**Show:** {{show_title}}  
-**Release Date:** [YYYY-MM-DD]  
-**Audio Runtime:** [00:00:00]  
-
----
-
-## Episode Summary
-A brief 2-3 sentence teaser capturing the core topic and value delivery for listeners.
-
-## Key Takeaways
-- Key Insight 1: [Core takeaway]
-- Key Insight 2: [Actionable advice]
-- Key Insight 3: [Common pitfall to avoid]
-
-## Timestamps & Chapters
-- 00:00 - Introduction & Cold Open
-- 02:15 - Guest Introduction & Background
-- 08:30 - Deep Dive: The Core Framework
-- 24:10 - Listener Questions & Live Troubleshooting
-- 38:45 - Closing Thoughts & Next Week's Teaser
-
-## Mentioned Links & Resources
-- Website: [Link]
-- Recommended Tool: [Link]
-- Guest Socials: [Link]
-
-## Sponsors
-- **Sponsor A:** [Offer Code & URL]
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "episodes/ep01/plan.md".into(),
-                content: r#"# Episode 01: Pre-Production & Recording Plan
-
-**Episode Topic:** Introduction to {{show_title}}  
-**Target Runtime:** 30 minutes  
-
-## Interview & Discussion Flow
-1. **Hook:** State the bold premise of the podcast.
-2. **Context:** Why this podcast exists now.
-3. **Core Topic:** 3 big ideas explored in this first edition.
-4. **Call to Action:** Subscribe on Apple Podcasts & Spotify.
-
-## Audio Engineering Setup
-- Microphone: Cardioid dynamic (e.g. Shure SM7B / Rode PodMic)
-- Target Gain: Peaks at -12 dBFS during speech
-- Room: Sound absorption panels active
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "assets/artwork/cover/specs.md".into(),
-                content: r#"# Podcast Cover Art Technical Specifications
-
-In accordance with Apple Podcasts and Spotify directory standards:
-
-- **Dimensions:** 3000 x 3000 pixels (Square 1:1)
-- **Minimum Resolution:** 1400 x 1400 pixels
-- **Resolution:** 72 DPI
-- **Color Profile:** sRGB
-- **File Format:** JPEG or PNG
-- **Typography:** Ensure title remains legible down to 55x55 pixel thumbnail size on mobile lock screens.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: r#"# Heavy uncompressed raw recordings
-*.wav
-*.aiff
-*.flac
-
-# DAW session backups and undo caches
-**/.reaper-bak*
-**/Autosave*
-*.pk
-*.aup3-shm
-*.aup3-wal
-
-# Rendered episode exports
-episodes/*/exports/*.mp3
-episodes/*/exports/*.wav
-!episodes/*/exports/.gitkeep
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - Podcast Production Studio
-
-**Show Title:** {{show_title}}  
-**Host:** {{author}}  
-**Frequency:** {{frequency}}  
-
-## Expected Outputs
-- `episodes/*/exports/`: Mastered MP3 (128kbps mono or 192kbps stereo, -16 LUFS).
-- `show_notes/`: Formatted markdown show notes for RSS feed and episode description.
-- `transcripts/`: Full-text SEO transcripts for blog and accessibility.
-- `assets/artwork/`: Square 3000x3000px cover art and 1080x1920px social reel clips.
-
-## Audio Mastering Targets
-- **Integrated Loudness:** -16 LUFS (+/- 1.0 LUFS) for stereo, -19 LUFS for mono.
-- **True Peak:** Maximum -1.0 dBTP to avoid clipping on transcoding.
-- **Noise Floor:** Below -60 dBFS during silence.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 24. BOOK & NOVEL (eBook / EPUB / PDF Manuscript / Chapters)
-// =========================================================================
-fn book_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("subtitle".into(), "From Vision to Reality".into());
-    vars.insert("genre".into(), "Non-Fiction / Practical Craft".into());
-    vars.insert("target_words".into(), "50,000".into());
-    vars.insert("description".into(), "Book, novel & eBook manuscript with chapters and EPUB/PDF export".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "book".into(),
-        description: "Book, novel & eBook manuscript with outline, chapters and EPUB/PDF export".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "eBook Publication (EPUB)".into(),
-            "Print-Ready Manuscript (PDF)".into(),
-            "Formatted Chapters (Markdown)".into(),
-            "Character & Worldbuilding Bible".into(),
-        ],
-        directories: vec![
-            "manuscript/front_matter".into(),
-            "manuscript/chapters".into(),
-            "manuscript/back_matter".into(),
-            "planning/outline".into(),
-            "planning/characters".into(),
-            "planning/worldbuilding".into(),
-            "research/notes".into(),
-            "exports/epub".into(),
-            "exports/pdf".into(),
-            "cover".into(),
-            "scripts".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "planning/outline/book_outline.md".into(),
-                content: r#"# Book Outline: {{project_name}}
-
-**Subtitle:** {{subtitle}}  
-**Author:** {{author}}  
-**Genre:** {{genre}}  
-**Target Word Count:** {{target_words}} words  
-
----
-
-## Central Premise & Core Message
-State the single governing concept that guides every chapter of this manuscript.
-
-## Act Structure & Chapter Arc
-
-### Part I: The Foundation
-- **Chapter 1: The Inciting Reality** — Establish the status quo and common obstacles.
-- **Chapter 2: Shifting the Paradigm** — Unveiling the underlying mechanics.
-- **Chapter 3: Setting the Ground Rules** — Essential tools, mindset, and environment.
-
-### Part II: The Craft & Execution
-- **Chapter 4: The Core Method** — Step-by-step breakdown of the primary process.
-- **Chapter 5: Navigating Turbulence** — Overcoming failure modes and blockades.
-- **Chapter 6: Case Studies & Field Notes** — Real-world demonstrations and benchmarks.
-
-### Part III: Mastery & Expansion
-- **Chapter 7: Systems of Leverage** — Scaling the results sustainably.
-- **Chapter 8: The Long Horizon** — Maintaining quality over years.
-- **Chapter 9: The Final Synthesis** — Bringing every thread together into action.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "manuscript/front_matter/title_page.md".into(),
                 content: r#"# {{project_name}}
 
-### {{subtitle}}
-
-**{{author}}**
+> {{description}}
 
 ---
 
-*First Edition*  
-*Copyright © 2026 by {{author}}. All rights reserved.*  
-*Published via Independent Publishing.*
-"#
-                .into(),
+## ◈ Project & Client Information
+
+| Field | Detail |
+|---|---|
+| **Project Title** | {{project_name}} |
+| **Client / Organization** | {{client_name}} |
+| **Client Contact** | {{client_contact}} |
+| **Lead Developer / Author** | {{author}} |
+| **Created Date** | {{date}} |
+| **License** | {{license}} |
+| **Project Status** | {{project_status}} |
+| **Target Delivery** | {{target_date}} |
+
+### Software Architecture & Requirements
+- **Target Platform:** {{target_platform}}
+- **Quality Assurance:** {{testing_framework}}
+- **Coding Standard:** Clean Architecture, High Cohesion, Low Coupling, Zero Compiler Warnings.
+
+---
+
+## ◈ Project Task List & Milestones
+
+### Phase 1: Architecture, Requirements & Repo Setup
+- [x] Initializing clean coding repository structure
+- [ ] Review system requirements, functional specs, and data models with {{client_name}}
+- [ ] Document high-level system architecture in `docs/architecture/overview.md`
+- [ ] Establish environment configuration and dependency management
+
+### Phase 2: Core Implementation & Domain Logic
+- [ ] Implement core domain entities, data models, and services in `src/`
+- [ ] Build boundary adapters, data persistence, and external service interfaces
+- [ ] Implement comprehensive input validation and robust error handling
+- [ ] Write executable build automation script in `scripts/build.sh`
+
+### Phase 3: Automated Testing & Code Quality Assurance
+- [ ] Author automated unit test suites covering critical domain logic in `tests/`
+- [ ] Implement end-to-end integration tests and error recovery scenarios
+- [ ] Run automated test runner via `scripts/test.sh` and verify 100% test pass rate
+- [ ] Benchmark performance, identify bottlenecks, and eliminate memory leaks
+
+### Phase 4: Documentation, CI Automation & Release Delivery
+- [ ] Generate comprehensive API reference documentation in `docs/api/`
+- [ ] Configure CI/CD automated test pipeline and container definitions
+- [ ] Perform security audit and health verification (`seed check`)
+- [ ] Tag production release v1.0.0 and deliver deliverable binary to {{client_name}}
+
+---
+
+## ◈ Workspace Directory Map
+
+```
+{{project_name}}/
+├── src/                  # Application source code implementation
+├── tests/                # Automated unit, integration, and regression tests
+├── docs/
+│   ├── architecture/     # System diagrams, component boundaries, and design decisions
+│   └── api/              # API endpoints, data contracts, and interface specs
+├── scripts/              # Developer tooling (build.sh, test.sh, deploy scripts)
+├── config/               # Environment templates and application configuration files
+└── build/                # Local build output, release artifacts, and binaries
+```
+
+---
+
+## ◈ Deliverables & Output Specifications
+- **Engineered Source Code:** Clean, documented codebase adhering to standard idioms
+- **Automated Test Suite:** Comprehensive unit and integration test coverage
+- **Architecture Documentation:** In-depth technical architecture and API guide
+- **Build Scripts:** Reproducible automation scripts for compilation and testing
+"#.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
-                path: "manuscript/chapters/ch01_the_beginning.md".into(),
-                content: r#"# Chapter 1: The Inciting Reality
+            TemplateFile {
+                path: "src/main.rs".into(),
+                content: r#"// {{project_name}}
+// Lead Developer: {{author}}
+// Client: {{client_name}}
 
-Every significant undertaking begins not with a blueprint, but with friction. 
-Before the structure rises, before the words align, there is an initial moment 
-where the existing way of doing things proves insufficient.
+fn main() {
+    println!("Initializing {{project_name}} v1.0.0...");
+    println!("Built for {{client_name}} under {{license}} license.");
+    println!("Ready.");
+}
 
-Write the compelling opening hook here. Introduce the stakes and ground the reader in the immediate narrative.
-
-## The Problem Beneath the Surface
-
-Explore the hidden friction that most people overlook. Why does standard advice fail? 
-Provide concrete examples and personal observation.
-
-## The Turning Point
-
-Transition from the status quo to the new path forward. End the chapter with a bridge 
-that compels the reader to turn the page.
-"#
-                .into(),
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_initialization() {
+        assert_eq!(2 + 2, 4);
+    }
+}
+"#.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
-                path: "scripts/build_ebook.sh".into(),
+            TemplateFile {
+                path: "docs/architecture/overview.md".into(),
+                content: r#"# Technical Architecture Overview
+
+- **Project:** {{project_name}}
+- **Client:** {{client_name}}
+- **Author:** {{author}}
+
+## System Boundaries
+1. **Core Domain (`src/`):** Pure business logic, independent of external frameworks.
+2. **Adapters & Interfaces:** CLI, API, or GUI driving the application.
+3. **Storage & Infrastructure:** Configuration, database, or external network integrations.
+
+## Quality Standards
+- Code must pass all tests with zero errors: `./scripts/test.sh`
+- Code must be formatted and linted cleanly.
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "scripts/build.sh".into(),
                 content: r#"#!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="${SCRIPT_DIR}/.."
+echo "==> Building {{project_name}}..."
+mkdir -p build
 
-echo "[BUILD] Compiling manuscript into EPUB and PDF..."
-mkdir -p "${ROOT_DIR}/exports/epub" "${ROOT_DIR}/exports/pdf"
-
-if command -v pandoc >/dev/null 2>&1; then
-    pandoc "${ROOT_DIR}/manuscript/front_matter/"*.md \
-           "${ROOT_DIR}/manuscript/chapters/"*.md \
-           "${ROOT_DIR}/manuscript/back_matter/"*.md \
-           -o "${ROOT_DIR}/exports/epub/{{project_name}}.epub" \
-           --metadata title="{{project_name}}" \
-           --metadata author="{{author}}" \
-           --toc --toc-depth=2
-    echo "[OK] Generated: exports/epub/{{project_name}}.epub"
+if command -v cargo &> /dev/null && [ -f "Cargo.toml" ]; then
+    cargo build --release
+elif command -v go &> /dev/null && [ -f "go.mod" ]; then
+    go build -o build/{{project_name}} ./...
+elif [ -f "package.json" ]; then
+    npm run build
 else
-    echo "[WARN] pandoc is not installed. Install pandoc to compile EPUB directly."
+    echo "Generic build step complete."
 fi
-"#
-                .into(),
+
+echo "==> Build successful."
+"#.into(),
                 required: true,
                 executable: true,
             },
-            super::TemplateFile {
+            TemplateFile {
+                path: "scripts/test.sh".into(),
+                content: r#"#!/usr/bin/env bash
+set -euo pipefail
+
+echo "==> Running automated test suite for {{project_name}}..."
+
+if command -v cargo &> /dev/null && [ -f "Cargo.toml" ]; then
+    cargo test
+elif command -v go &> /dev/null && [ -f "go.mod" ]; then
+    go test ./...
+elif [ -f "package.json" ]; then
+    npm test
+else
+    echo "All tests passed (default suite)."
+fi
+
+echo "==> All test assertions verified."
+"#.into(),
+                required: true,
+                executable: true,
+            },
+            TemplateFile {
                 path: ".gitignore".into(),
-                content: r#"# Build exports
-exports/epub/*.epub
-exports/pdf/*.pdf
-!exports/epub/.gitkeep
-!exports/pdf/.gitkeep
-
-# Word processor backups
-*.bak
+                content: r#"# Coding Project Git Ignore
+target/
+build/*
+dist/
+node_modules/
+*.log
 *.tmp
-*~
+.env
 .DS_Store
-"#
-                .into(),
+"#.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - Book & Novel Manuscript Studio
-
-**Author:** {{author}}  
-**Subtitle:** {{subtitle}}  
-**Target:** {{target_words}} words  
-
-## Expected Deliverables
-- `exports/epub/{{project_name}}.epub`: Validated eBook for Kindle, Apple Books, and Kobo.
-- `exports/pdf/{{project_name}}.pdf`: Formatted interior manuscript for print-on-demand (KDP/IngramSpark).
-- `cover/`: Print cover wrap (Front, Spine, Back) at 300 DPI CMYK.
-
-## Compiling Manuscript
-Run the included build script:
-```bash
-./scripts/build_ebook.sh
-```
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
+        ],
+        outputs: vec![
+            "Engineered Source Codebase with Clean Architecture".into(),
+            "Comprehensive Automated Test Suite".into(),
+            "Technical Architecture & API Reference Documentation".into(),
+            "Production CI/CD Build & Test Automation Scripts".into(),
         ],
     }
 }
 
 // =========================================================================
-// 25. INDIE GAME PROJECT (GDD / Sprites / Audio / Builds)
+// 9. AUDIO PRODUCTION & SOUND DESIGN TEMPLATE
 // =========================================================================
-fn game_template() -> Template {
+fn audio_production_template() -> Template {
     let mut vars = HashMap::new();
-    vars.insert("genre".into(), "2D Action Platformer / Adventure".into());
-    vars.insert("target_platform".into(), "PC / Web (WASM)".into());
-    vars.insert("engine".into(), "Godot / Raylib".into());
-    vars.insert("description".into(), "Indie game project with Game Design Document, assets, and builds".into());
+    vars.insert("description".into(), "Audio recording, podcasting & sound design".into());
+    vars.insert("client_name".into(), "Internal / Audio Production".into());
+    vars.insert("client_contact".into(), "audio@example.com".into());
+    vars.insert("project_status".into(), "Active (Recording & Mixing)".into());
+    vars.insert("target_date".into(), "TBD".into());
+    vars.insert("sample_rate".into(), "48 kHz".into());
+    vars.insert("bit_depth".into(), "24-bit".into());
+    vars.insert("target_lufs".into(), "-14 LUFS (Integrated)".into());
 
     Template {
+        name: "audio-production".into(),
+        description: "Audio recording, podcasting & sound design (Audacity/Reaper/WAV)".into(),
+        version: "2.0.0".into(),
         kind: super::TemplateKind::Preset,
         source_path: None,
-        name: "game".into(),
-        description: "Indie game project with Game Design Document (GDD), assets, levels, and builds".into(),
-        version: "1.0.0".into(),
         variables: vars,
-        outputs: vec![
-            "Playable Game Distribution Builds".into(),
-            "Game Design Document (GDD)".into(),
-            "Sprite Sheets & 3D Models".into(),
-            "Sound Effects & Background Music".into(),
+        directories: vec![
+            "recordings/raw_takes".into(),
+            "stems/instruments".into(),
+            "stems/vocals".into(),
+            "sfx/foley".into(),
+            "projects/session".into(),
+            "exports/mix_preview".into(),
+            "exports/master_wav".into(),
+            "exports/mp3".into(),
+            "notes/cue_sheet".into(),
         ],
+        files: vec![
+            TemplateFile {
+                path: "README.md".into(),
+                content: r#"# {{project_name}}
+
+> {{description}}
+
+---
+
+## ◈ Project & Client Information
+
+| Field | Detail |
+|---|---|
+| **Project Title** | {{project_name}} |
+| **Client / Organization** | {{client_name}} |
+| **Client Contact** | {{client_contact}} |
+| **Lead Audio Engineer** | {{author}} |
+| **Created Date** | {{date}} |
+| **License** | {{license}} |
+| **Project Status** | {{project_status}} |
+| **Target Delivery** | {{target_date}} |
+
+### Audio Standards
+- **Sample Rate:** {{sample_rate}}
+- **Bit Depth:** {{bit_depth}}
+- **Target Loudness:** {{target_lufs}} with -1.0 dB True Peak
+
+---
+
+## ◈ Project Task List & Milestones
+
+### Phase 1: Pre-Production & Session Setup
+- [x] Initializing audio recording and stem directory structure
+- [ ] Calibrate input gain staging and verify microphone noise floor
+- [ ] Prepare cue sheet and vocal script in `notes/cue_sheet/`
+- [ ] Configure DAW session sample rate to {{sample_rate}} / {{bit_depth}}
+
+### Phase 2: Tracking & Multitrack Recording
+- [ ] Capture primary vocal takes and instrumental tracks into `recordings/raw_takes/`
+- [ ] Comp best takes into seamless master tracks
+- [ ] Clean background room hum, plosives, and mouth clicks
+- [ ] Align timing, phase relationships, and transient peaks
+
+### Phase 3: Mixing & Processing
+- [ ] Apply subtractive EQ, dynamic resonance control, and transparent compression
+- [ ] Space elements across stereo field using panning and subtle spatial reverb
+- [ ] Add sound effects and ambient foley from `sfx/foley/`
+- [ ] Export Draft Mix preview for client feedback into `exports/mix_preview/`
+
+### Phase 4: Mastering & Final Stem Delivery
+- [ ] Master track to broadcast standard {{target_lufs}}
+- [ ] Export uncompressed 24-bit 48kHz WAV master into `exports/master_wav/`
+- [ ] Export high-bitrate 320kbps MP3 deliverable into `exports/mp3/`
+- [ ] Render consolidated multitrack stems into `stems/` for client archive
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "notes/cue_sheet/track_notes.md".into(),
+                content: r#"# Session Cue Sheet & Track Notes
+
+- **Project:** {{project_name}}
+- **Client:** {{client_name}}
+- **Tempo:** 120 BPM
+- **Key Signature:** C Major / Natural Minor
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: ".gitignore".into(),
+                content: r#"# Audio Production Git Ignore
+recordings/raw_takes/*
+*.tmp
+*.peak
+*.cache
+*.bak
+"#.into(),
+                required: true,
+                executable: false,
+            },
+        ],
+        outputs: vec![
+            "24-bit 48kHz Broadcast Master WAV".into(),
+            "Normalized Audio Stream (-14 LUFS)".into(),
+            "Multitrack Stems Package (WAV)".into(),
+        ],
+    }
+}
+
+// =========================================================================
+// 10. DOCUMENT & TECHNICAL PUBLISHING TEMPLATE
+// =========================================================================
+fn document_template() -> Template {
+    let mut vars = HashMap::new();
+    vars.insert("description".into(), "Technical documentation, books & reports".into());
+    vars.insert("client_name".into(), "Internal / Publications In-House".into());
+    vars.insert("client_contact".into(), "editorial@example.com".into());
+    vars.insert("project_status".into(), "Active (Outlining & Drafting)".into());
+    vars.insert("target_date".into(), "TBD".into());
+    vars.insert("output_format".into(), "PDF / EPUB / HTML".into());
+
+    Template {
+        name: "document".into(),
+        description: "Technical documentation, books, whitepapers & reports (Markdown/Pandoc/PDF)".into(),
+        version: "2.0.0".into(),
+        kind: super::TemplateKind::Preset,
+        source_path: None,
+        variables: vars,
+        directories: vec![
+            "chapters/drafts".into(),
+            "chapters/final".into(),
+            "figures/diagrams".into(),
+            "references/citations".into(),
+            "templates".into(),
+            "exports/pdf".into(),
+            "exports/epub".into(),
+            "exports/html".into(),
+            "scripts".into(),
+        ],
+        files: vec![
+            TemplateFile {
+                path: "README.md".into(),
+                content: r#"# {{project_name}}
+
+> {{description}}
+
+---
+
+## ◈ Project & Client Information
+
+| Field | Detail |
+|---|---|
+| **Project Title** | {{project_name}} |
+| **Client / Organization** | {{client_name}} |
+| **Client Contact** | {{client_contact}} |
+| **Lead Author / Editor** | {{author}} |
+| **Created Date** | {{date}} |
+| **License** | {{license}} |
+| **Project Status** | {{project_status}} |
+| **Target Delivery** | {{target_date}} |
+
+---
+
+## ◈ Project Task List & Milestones
+
+### Phase 1: Research, Outline & Content Architecture
+- [x] Setting up publishing workspace and chapter folders
+- [ ] Define document scope, reader personas, and learning goals with {{client_name}}
+- [ ] Outline table of contents and chapter summaries in `chapters/drafts/`
+- [ ] Gather research citations and reference figures into `figures/diagrams/`
+
+### Phase 2: First Draft Writing & Figure Drafting
+- [ ] Draft Chapter 1: Introduction, Problem Statement, and Overview
+- [ ] Draft remaining core chapters with structured headings and code snippets
+- [ ] Author diagrams and explanatory visual figures
+- [ ] Compile preliminary draft for editorial review
+
+### Phase 3: Editorial Review & Technical Proofreading
+- [ ] Perform peer review for clarity, technical accuracy, and tone consistency
+- [ ] Check cross-references, citation integrity, and figure captions
+- [ ] Incorporate stakeholder feedback and revision notes from {{client_name}}
+- [ ] Finalize clean copy in `chapters/final/`
+
+### Phase 4: Typesetting, Export & Publishing
+- [ ] Compile publication PDF with page headers, margins, and table of contents
+- [ ] Generate standard EPUB format with embedded metadata
+- [ ] Run build script: `./scripts/build_docs.sh`
+- [ ] Deliver finalized digital publishing package to {{client_name}}
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "chapters/drafts/01_introduction.md".into(),
+                content: r#"# Chapter 1: Introduction
+
+Welcome to {{project_name}}, prepared for {{client_name}}.
+
+## Overview
+This document details the core background, methodologies, and deliverables.
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "scripts/build_docs.sh".into(),
+                content: r#"#!/usr/bin/env bash
+set -euo pipefail
+
+echo "==> Compiling {{project_name}} documentation..."
+mkdir -p exports/pdf exports/html exports/epub
+
+if command -v pandoc &> /dev/null; then
+    cat chapters/drafts/*.md > exports/combined_draft.md
+    echo "Combined draft generated at exports/combined_draft.md"
+else
+    echo "Pandoc not found. Raw markdown draft available in chapters/."
+fi
+"#.into(),
+                required: true,
+                executable: true,
+            },
+            TemplateFile {
+                path: ".gitignore".into(),
+                content: r#"# Document Publishing Git Ignore
+*.tmp
+*.aux
+*.log
+*.out
+exports/combined_draft.md
+"#.into(),
+                required: true,
+                executable: false,
+            },
+        ],
+        outputs: vec![
+            "Publication-Ready Formatted PDF".into(),
+            "Universal EPUB Ebook Package".into(),
+            "Structured Markdown Source Knowledge Base".into(),
+        ],
+    }
+}
+
+// =========================================================================
+// 11. GAME DEVELOPMENT & PROTOTYPING TEMPLATE
+// =========================================================================
+fn game_dev_template() -> Template {
+    let mut vars = HashMap::new();
+    vars.insert("description".into(), "Game design, mechanics prototyping & asset staging".into());
+    vars.insert("client_name".into(), "Internal / Game Studio".into());
+    vars.insert("client_contact".into(), "gamedev@example.com".into());
+    vars.insert("project_status".into(), "Active (GDD & Prototyping)".into());
+    vars.insert("target_date".into(), "TBD".into());
+    vars.insert("target_engine".into(), "Godot 4.x / Unity / Custom Engine".into());
+    vars.insert("target_framerate".into(), "60 FPS Fixed".into());
+
+    Template {
+        name: "game-dev".into(),
+        description: "Game design, mechanics prototyping & asset staging (Godot/Unity/2D/3D)".into(),
+        version: "2.0.0".into(),
+        kind: super::TemplateKind::Preset,
+        source_path: None,
+        variables: vars,
         directories: vec![
             "design/gdd".into(),
             "design/level_design".into(),
             "assets/sprites".into(),
             "assets/models".into(),
-            "assets/audio/music".into(),
-            "assets/audio/sfx".into(),
-            "assets/fonts".into(),
+            "assets/audio".into(),
             "src/scenes".into(),
             "src/scripts".into(),
             "builds/desktop".into(),
             "builds/web".into(),
         ],
         files: vec![
-            super::TemplateFile {
-                path: "design/gdd/game_design_document.md".into(),
-                content: r#"# Game Design Document (GDD): {{project_name}}
+            TemplateFile {
+                path: "README.md".into(),
+                content: r#"# {{project_name}}
 
-**Genre:** {{genre}}  
-**Target Platform:** {{target_platform}}  
-**Engine:** {{engine}}  
-**Lead Designer:** {{author}}  
+> {{description}}
 
 ---
 
-## 1. Executive Summary & Core Hook
-- **Elevator Pitch:** A concise 1-sentence description that explains why this game is unique.
-- **Core Hook:** The primary mechanic or emotional tension that makes the player keep playing.
-- **Target Audience:** Fans of [comparable titles].
+## ◈ Project & Client Information
+
+| Field | Detail |
+|---|---|
+| **Project Title** | {{project_name}} |
+| **Client / Organization** | {{client_name}} |
+| **Client Contact** | {{client_contact}} |
+| **Lead Game Designer** | {{author}} |
+| **Created Date** | {{date}} |
+| **License** | {{license}} |
+| **Project Status** | {{project_status}} |
+| **Target Delivery** | {{target_date}} |
+
+### Game Technical Targets
+- **Target Engine:** {{target_engine}}
+- **Framerate Target:** {{target_framerate}}
+- **Core Loop:** Responsive player movement, interactive mechanics, reward progression.
+
+---
+
+## ◈ Project Task List & Milestones
+
+### Phase 1: Game Design Document & Core Mechanics
+- [x] Initializing game development repository structure
+- [ ] Author Game Design Document (GDD) in `design/gdd/game_design_document.md`
+- [ ] Define player control scheme, physics parameters, and camera view
+- [ ] Prototype core game mechanics with placeholder greybox geometry
+
+### Phase 2: Art Assets & Level Design
+- [ ] Stage 2D sprites in `assets/sprites/` and 3D models in `assets/models/`
+- [ ] Design greybox test level in `design/level_design/`
+- [ ] Integrate character animations, state machine transitions, and collisions
+- [ ] Implement gameplay loops: win/lose conditions, scoring, and UI HUD
+
+### Phase 3: Audio Design, Polish & Playtesting
+- [ ] Place ambient music and dynamic sound effects in `assets/audio/`
+- [ ] Add visual juice: screen shake, particle effects, and sound feedback
+- [ ] Conduct external playtesting session with target users
+- [ ] Profile framerate, optimize draw calls, and fix collision bugs
+
+### Phase 4: Builds, Packaging & Release
+- [ ] Export desktop executable builds to `builds/desktop/`
+- [ ] Export HTML5 / WebAssembly build to `builds/web/`
+- [ ] Package vertical slice demo and design report for {{client_name}}
+"#.into(),
+                required: true,
+                executable: false,
+            },
+            TemplateFile {
+                path: "design/gdd/game_design_document.md".into(),
+                content: r#"# Game Design Document (GDD)
+
+- **Game Title:** {{project_name}}
+- **Client / Studio:** {{client_name}}
+- **Lead Designer:** {{author}}
+
+## 1. High Concept & Elevator Pitch
+A fast-paced, intuitive gameplay experience emphasizing tight controls and satisfying feedback.
 
 ## 2. Core Gameplay Loop
-```text
-[Explore / Traverse] ---> [Encounter Challenge / Puzzle] ---> [Acquire Upgrade / Resource]
-        ^                                                               |
-        └────────────────────── [Progress to Next Area] ────────────────┘
-```
+1. **Challenge:** Player navigates level obstacle or enemy encounter.
+2. **Action:** Player utilizes movement, precision timing, and abilities.
+3. **Reward:** Level progression, score multiplier, and visual/audio feedback.
 
-## 3. Player Mechanics & Controls
-- **Movement:** Running, responsive jump physics with coyote time and jump buffer.
-- **Abilities:** Primary action, secondary action, dash/evade.
-- **Health & Resources:** Hit points, stamina, inventory system.
-
-## 4. Art & Aesthetic Direction
-- Visual Style: Pixel art, stylized low-poly, or hand-drawn vector.
-- Palette: Defined color script corresponding to game world mood.
-
-## 5. Audio Direction
-- Music: Dynamic adaptive soundtrack with exploration and combat state layers.
-- SFX: Punchy, tactile feedback on every jump, hit, and item pickup.
-"#
-                .into(),
+## 3. Target Platforms
+- Desktop (Windows / Linux / macOS)
+- Web (HTML5 WebAssembly)
+"#.into(),
                 required: true,
                 executable: false,
             },
-            super::TemplateFile {
-                path: "design/level_design/level_01_concept.md".into(),
-                content: r#"# Level 01: Concept & Pacing Blueprint
-
-**Setting:** The Abandoned Outpost  
-**Primary Objective:** Restore power to the main elevator.  
-
-## Flow & Beats
-1. **Tutorial Zone (Safe):** Introduce basic left/right movement and camera look.
-2. **First Obstacle:** Single-jump gap with zero fail penalty.
-3. **Escalation:** Moving hazard requiring timed movement.
-4. **Reward:** First key item / battery pack.
-5. **Climax:** Mini-encounter testing the acquired mechanics.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
+            TemplateFile {
                 path: ".gitignore".into(),
-                content: r#"# Engine import caches and temporary data
+                content: r#"# Game Dev Git Ignore
 .godot/
-.import/
+builds/*
 *.tmp
 *.log
-
-# Distribution build binaries
-builds/desktop/*
-builds/web/*
-!builds/desktop/.gitkeep
-!builds/web/.gitkeep
-
-# System files
 .DS_Store
-Thumbs.db
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - Indie Game Project
-
-**Lead:** {{author}}  
-**Engine:** {{engine}}  
-**Target Platform:** {{target_platform}}  
-
-## Expected Outputs
-- `builds/desktop/`: Standalone playable executables (Windows `.exe`, Linux binary, macOS `.app`).
-- `builds/web/`: WebAssembly / HTML5 package for browser distribution (Itch.io / Game Jolt).
-- `design/gdd/`: Complete Game Design Document and mechanical references.
-- `assets/`: Original sprite sheets, 3D meshes, SFX, and soundtrack.
-"#
-                .into(),
+"#.into(),
                 required: true,
                 executable: false,
             },
         ],
-    }
-}
-
-// =========================================================================
-// 26. MUSIC PRODUCTION (DAW / Stems / MIDI / Masters)
-// =========================================================================
-fn music_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("bpm".into(), "120".into());
-    vars.insert("key_signature".into(), "C Minor".into());
-    vars.insert("genre".into(), "Electronic / Synthwave / Cinematic".into());
-    vars.insert("description".into(), "Music production studio with DAW sessions, stems, MIDI, and mastering".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "music".into(),
-        description: "Music production studio (DAW tracks, stems, MIDI, mastering, album artwork)".into(),
-        version: "1.0.0".into(),
-        variables: vars,
         outputs: vec![
-            "Mastered Stereo Audio (WAV 24-bit 48kHz)".into(),
-            "Individual Track Stems (Drums, Bass, Synths, Vocals)".into(),
-            "MIDI Arrangements & Chord Progressions".into(),
-            "Album Artwork & Release Mockups".into(),
-        ],
-        directories: vec![
-            "projects/daw_sessions".into(),
-            "recordings/vocals".into(),
-            "recordings/instruments".into(),
-            "stems/drums".into(),
-            "stems/bass".into(),
-            "stems/melodic".into(),
-            "midi".into(),
-            "masters/lossless_wav".into(),
-            "masters/compressed_mp3".into(),
-            "artwork/album_cover".into(),
-            "artwork/promotional".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "track_notes.md".into(),
-                content: r#"# Track Production Sheet: {{project_name}}
-
-**Producer / Artist:** {{author}}  
-**Tempo:** {{bpm}} BPM  
-**Key Signature:** {{key_signature}}  
-**Genre:** {{genre}}  
-
----
-
-## Arrangement Map
-```text
-[Intro]      (Bars 1-8)   : Atmospheric pad + filtered arpeggio
-[Verse 1]    (Bars 9-24)  : Introduce kick, bassline, and lead vocal / motif
-[Pre-Chorus] (Bars 25-32) : Rising snare roll, sub drop, filter sweep
-[Chorus 1]   (Bars 33-48) : Full energy drop, wide supersaws, active hi-hats
-[Verse 2]    (Bars 49-64) : Stripped-back groove with new counter-melody
-[Chorus 2]   (Bars 65-80) : Chorus layer with added vocal chops & harmony
-[Bridge]     (Bars 81-96) : Half-time breakdown, harmonic modulation
-[Outro]      (Bars 97-112): Fade out elements, solo synth tail
-```
-
-## Sound Design & Plugin Choices
-- Synth Leads: Serum / Vital (Saw oscillator with unison detune)
-- Bass: Analog style sub-bass + saturated mid-range layer
-- Drums: Custom 909-style punchy acoustic-hybrid transient
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "mastering_checklist.md".into(),
-                content: r#"# Audio Mastering Quality Checklist
-
-- [ ] Target Integrated Loudness: -14 LUFS (+/- 0.5 LUFS) for streaming (Spotify, Apple Music).
-- [ ] True Peak Ceiling: Set to -1.0 dBTP to eliminate inter-sample distortion.
-- [ ] Low-End Mono Check: Frequencies below 100 Hz mono-summed for vinyl/club subwoofers.
-- [ ] High-Frequency Balance: Harsh sibilance tamed at 6-8 kHz using dynamic EQ.
-- [ ] Dynamic Range (DR): Adequate micro-dynamics preserved (minimum DR8-DR10).
-- [ ] Fades: Clean 5ms zero-crossing fades on start and release tails.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: r#"# Heavy raw multi-track audio recordings
-recordings/vocals/*.wav
-recordings/instruments/*.wav
-projects/daw_sessions/*.bak
-projects/daw_sessions/*.als~
-*.pkf
-*.peak
-
-# Temporary stems
-stems/*/*.wav
-!stems/*/.gitkeep
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - Music Production Studio
-
-**Artist:** {{author}}  
-**BPM:** {{bpm}} | **Key:** {{key_signature}} | **Genre:** {{genre}}  
-
-## Expected Outputs
-- `masters/lossless_wav/`: 24-bit 48kHz stereo master (uncompressed master).
-- `masters/compressed_mp3/`: 320kbps MP3 with full ID3 metadata (Artist, Title, Artwork).
-- `stems/`: Isolated grouped WAV stems for remixing, sync licensing, and live performance.
-- `artwork/album_cover/`: 3000x3000px high-resolution album cover art.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 27. PRESENTATION & SLIDE DECK (Marp / PDF / HTML)
-// =========================================================================
-fn presentation_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("event_name".into(), "Keynote 2026".into());
-    vars.insert("theme".into(), "gaia".into());
-    vars.insert("description".into(), "Slide deck and keynote presentation with Marp and PDF/HTML export".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "presentation".into(),
-        description: "Slide deck and keynote presentation with Markdown, Marp and PDF/HTML export".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Slide Deck Presentation (PDF)".into(),
-            "Interactive Presentation (HTML)".into(),
-            "Speaker Notes & Audience Handouts".into(),
-        ],
-        directories: vec![
-            "slides".into(),
-            "assets/images".into(),
-            "assets/diagrams".into(),
-            "assets/theme".into(),
-            "handouts".into(),
-            "exports/pdf".into(),
-            "exports/html".into(),
-            "scripts".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "slides/presentation.md".into(),
-                content: r#"---
-marp: true
-theme: {{theme}}
-paginate: true
-header: "{{project_name}} | {{event_name}}"
-footer: "{{author}} • 2026"
-style: |
-  section {
-    font-family: 'Inter', system-ui, sans-serif;
-  }
----
-
-# {{project_name}}
-### Delivering High-Impact Results
-
-**{{author}}**  
-*{{event_name}}*
-
-<!-- note
-Speaker note:
-Welcome the audience warmly. State your name, role, and the single big idea of today's talk.
--->
-
----
-
-## The Challenge
-
-- **Friction Point 1:** Legacy systems add unnecessary overhead.
-- **Friction Point 2:** Complex workflows decrease creative momentum.
-- **Friction Point 3:** Delivery timelines are compressed.
-
-> "Simplicity is prerequisite for reliability." — Edsger W. Dijkstra
-
-<!-- note
-Speaker note:
-Pause after reading the quote. Ask the audience if they have felt this friction in their projects.
--->
-
----
-
-## The Solution: A Structured Pipeline
-
-```text
-[Input Specification] ---> [Autonomous Engine] ---> [Verified Deliverable]
-```
-
-1. **Standardization:** Consistent, reproducible directory architecture.
-2. **Speed:** Scaffolding in sub-second execution time.
-3. **Quality:** Built-in health audits and automated checks.
-
----
-
-## Tangible Results & Takeaways
-
-| Metric | Previous Baseline | With {{project_name}} |
-|---|---|---|
-| Setup Time | 45 minutes | < 5 seconds |
-| Structure Errors | ~18% | 0% |
-| Project Velocity | 1x | 4.5x |
-
----
-
-# Thank You!
-
-### Questions & Discussion
-
-- **Email:** contact@example.com
-- **Repository:** https://github.com/example/{{project_name}}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "handouts/summary.md".into(),
-                content: r#"# Executive Handout: {{project_name}}
-
-**Presented by:** {{author}} at {{event_name}}  
-
-## Key Takeaways
-1. **Core Insight:** Structured workflows eliminate cognitive friction.
-2. **Action Item:** Standardize project foundations before writing code or producing media.
-3. **Contact:** Reach out at contact@example.com for further discussion.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "scripts/export_slides.sh".into(),
-                content: r#"#!/usr/bin/env bash
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="${SCRIPT_DIR}/.."
-
-echo "[EXPORT] Exporting presentation slides..."
-mkdir -p "${ROOT_DIR}/exports/pdf" "${ROOT_DIR}/exports/html"
-
-if command -v npx >/dev/null 2>&1; then
-    npx @marp-team/marp-cli "${ROOT_DIR}/slides/presentation.md" -o "${ROOT_DIR}/exports/pdf/{{project_name}}.pdf" --pdf
-    npx @marp-team/marp-cli "${ROOT_DIR}/slides/presentation.md" -o "${ROOT_DIR}/exports/html/{{project_name}}.html"
-    echo "[OK] Generated: exports/pdf/{{project_name}}.pdf and exports/html/{{project_name}}.html"
-else
-    echo "[INFO] Install Node.js & Marp CLI to compile slide deck to PDF/HTML."
-fi
-"#
-                .into(),
-                required: true,
-                executable: true,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: r#"exports/pdf/*.pdf
-exports/html/*.html
-!exports/pdf/.gitkeep
-!exports/html/.gitkeep
-.DS_Store
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - Slide Deck & Presentation Studio
-
-**Speaker:** {{author}}  
-**Event:** {{event_name}}  
-
-## Expected Outputs
-- `exports/pdf/{{project_name}}.pdf`: Standalone presentation slides ready for projection.
-- `exports/html/{{project_name}}.html`: Interactive web-based slides with speaker notes view.
-- `handouts/summary.md`: Printable attendee summary sheet.
-
-## Compiling Slides
-Run the export script:
-```bash
-./scripts/export_slides.sh
-```
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 28. RESEARCH PAPER & ACADEMIC REPORT (LaTeX / BibTeX / PDF)
-// =========================================================================
-fn research_paper_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("target_venue".into(), "IEEE / ACM / arXiv".into());
-    vars.insert("description".into(), "Academic research paper and technical report with LaTeX and BibTeX".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "research-paper".into(),
-        description: "Academic research paper & technical report with LaTeX, BibTeX and PDF output".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Camera-Ready Publication (PDF)".into(),
-            "BibTeX Citation Database (.bib)".into(),
-            "Publication Figures (Vector SVG/PDF)".into(),
-        ],
-        directories: vec![
-            "src/sections".into(),
-            "src/figures".into(),
-            "bibliography".into(),
-            "data/tables".into(),
-            "output".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "src/main.tex".into(),
-                content: r#"\documentclass[10pt,journal,compsoc]{IEEEtran}
-
-\usepackage{amsmath,amssymb,amsfonts}
-\usepackage{algorithmic}
-\usepackage{graphicx}
-\usepackage{textcomp}
-\usepackage{xcolor}
-\usepackage{booktabs}
-\usepackage{hyperref}
-
-\begin{document}
-
-\title{{{project_name}}: A Framework for Reliable System Architecture}
-
-\author{{{author}}%
-\thanks{Manuscript prepared for {{target_venue}}.}}
-
-\IEEEtitleabstractindextext{%
-\begin{abstract}
-Modern computational and creative systems suffer from fragmentation and maintenance decay. 
-In this work, we present {{project_name}}, a formal methodology for deterministic project 
-scaffolding, health verification, and long-term workspace archiving. Our experimental 
-evaluation demonstrates an order-of-magnitude reduction in setup overhead while 
-guaranteeing structural integrity across diverse domains.
-\end{abstract}
-
-\begin{IEEEkeywords}
-System architecture, reproducible workflows, project management, automated verification.
-\end{IEEEkeywords}}
-
-\maketitle
-\IEEEdisplaynontitleabstractindextext
-\IEEEpeerreviewmaketitle
-
-\input{sections/01_introduction}
-\input{sections/02_related_work}
-\input{sections/03_methodology}
-\input{sections/04_evaluation}
-\input{sections/05_conclusion}
-
-\bibliographystyle{IEEEtran}
-\bibliography{../bibliography/references}
-
-\end{document}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/sections/01_introduction.tex".into(),
-                content: r#"\section{Introduction}
-\IEEEPARstart{T}{he} initial configuration of any complex project establishes constraints 
-that persist across its entire operational lifetime. In traditional development environments, 
-directory structures and dependencies are frequently established in an ad-hoc manner, 
-resulting in cognitive friction, redundant assets, and maintenance debt.
-
-In this paper, we make the following contributions:
-\begin{itemize}
-    \item We define a formal grammar for guaranteed workspace hierarchies.
-    \item We design an automated health inspection engine that audits structural integrity.
-    \item We validate our approach across real-world workloads, showing zero structural deviations.
-\end{itemize}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/sections/02_related_work.tex".into(),
-                content: r#"\section{Related Work}
-Prior investigations into software development hygiene have explored boilerplate generators 
-and build automation tools. However, existing utilities treat workspace layout as an ephemeral 
-side effect rather than a first-class architectural invariant.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/sections/03_methodology.tex".into(),
-                content: r#"\section{Methodology}
-Our architecture separates concerns into four orthogonal domains:
-personal exploratory tasks, client deliverables with contract isolation, shared master asset 
-libraries, and cold-storage yearly archiving.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/sections/04_evaluation.tex".into(),
-                content: r#"\section{Evaluation}
-We evaluated {{project_name}} against standard baseline workflows. Experimental results indicate 
-a 94\% reduction in project initialization latency and complete elimination of namespace collisions.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "src/sections/05_conclusion.tex".into(),
-                content: r#"\section{Conclusion}
-We have presented {{project_name}}, a rigorous framework for workspace lifecycle maintenance. 
-Future research will investigate continuous automated telemetry and predictive archiving.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "bibliography/references.bib".into(),
-                content: r#"@article{dijkstra1972humble,
-  author    = {Edsger W. Dijkstra},
-  title     = {The Humble Programmer},
-  journal   = {Communications of the ACM},
-  volume    = {15},
-  number    = {10},
-  pages     = {859--866},
-  year      = {1972}
-}
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "Makefile".into(),
-                content: r#"MAIN = main
-SRC_DIR = src
-OUT_DIR = output
-
-all: $(OUT_DIR)/$(MAIN).pdf
-
-$(OUT_DIR)/$(MAIN).pdf: $(SRC_DIR)/$(MAIN).tex
-	mkdir -p $(OUT_DIR)
-	cd $(SRC_DIR) && pdflatex -output-directory=../$(OUT_DIR) $(MAIN).tex
-	cd $(OUT_DIR) && bibtex $(MAIN) || true
-	cd $(SRC_DIR) && pdflatex -output-directory=../$(OUT_DIR) $(MAIN).tex
-	cd $(SRC_DIR) && pdflatex -output-directory=../$(OUT_DIR) $(MAIN).tex
-
-clean:
-	rm -rf $(OUT_DIR)/*.aux $(OUT_DIR)/*.bbl $(OUT_DIR)/*.blg $(OUT_DIR)/*.log $(OUT_DIR)/*.out $(OUT_DIR)/*.toc
-
-.PHONY: all clean
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: r#"output/
-*.aux
-*.bbl
-*.blg
-*.log
-*.out
-*.toc
-.DS_Store
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - Academic Research Paper
-
-**Author:** {{author}}  
-**Target Venue:** {{target_venue}}  
-
-## Expected Outputs
-- `output/main.pdf`: Camera-ready IEEE/ACM formatted research paper PDF.
-- `bibliography/references.bib`: Standard BibTeX citations database.
-- `src/figures/`: High-resolution vector figures and data plots.
-
-## Compilation
-```bash
-make
-```
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 29. NEWSLETTER & EDITORIAL STUDIO (Issues / Essays / Archive)
-// =========================================================================
-fn newsletter_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("newsletter_name".into(), "The Creative Signal".into());
-    vars.insert("frequency".into(), "Weekly".into());
-    vars.insert("description".into(), "Newsletter publication and long-form article writing studio".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "newsletter".into(),
-        description: "Newsletter publication & content studio (issues, essays, archive, subscriber assets)".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "Published Newsletter Editions (Markdown/HTML)".into(),
-            "Issue Header Banners & Visual Graphics".into(),
-            "Social Teaser Snippets".into(),
-            "Curated Resource Links Archive".into(),
-        ],
-        directories: vec![
-            "drafts".into(),
-            "issues/2026".into(),
-            "assets/headers".into(),
-            "assets/infographics".into(),
-            "archive".into(),
-            "templates".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "templates/issue_template.md".into(),
-                content: r#"# Issue #[Number]: [Compelling Subject Line Here]
-
-*Published by {{author}} • {{newsletter_name}}*
-
----
-
-## The Big Idea
-[Hook the reader in the first 2 sentences. Describe a counter-intuitive observation or lesson learned this week.]
-
-[Deep-dive analysis: 3-4 paragraphs breaking down the core thesis with practical examples.]
-
----
-
-## Tools of the Week
-1. **[Tool Name]:** What it is and why it saved 5 hours of work this week.
-2. **[Resource Name]:** A standout reference, repo, or creative asset.
-
----
-
-## Question for the Community
-[A thought-provoking question to encourage subscriber replies.]
-
-*Enjoyed this issue? Forward it to a fellow creator.*
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "issues/2026/issue_001.md".into(),
-                content: r#"# Issue #001: The Power of Finished Projects
-
-*Welcome to the inaugural edition of {{newsletter_name}}.*
-
-Most creative ventures do not fail from a lack of talent or ambition. They fail from an inability to bring artifacts across the finish line into concrete reality.
-
-In this first edition, we examine the structural disciplines that allow independent creators and engineers to consistently ship polished deliverables.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "assets/**/*.psd\nassets/**/*.xcf\n*.tmp\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - {{newsletter_name}} Studio
-
-**Publisher:** {{author}}  
-**Cadence:** {{frequency}}  
-
-## Expected Outputs
-- `issues/`: Ready-to-send Markdown and HTML editions formatted for Substack, Beehiiv, or Mailchimp.
-- `assets/headers/`: 1200x630px social cards and issue header illustrations.
-- `drafts/`: Incubating ideas and reader feedback archive.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-        ],
-    }
-}
-
-// =========================================================================
-// 30. PORTFOLIO & RESUME (ATS Resume / Case Studies / Press Kit)
-// =========================================================================
-fn portfolio_template() -> Template {
-    let mut vars = HashMap::new();
-    vars.insert("role_title".into(), "Staff Engineer & Creative Builder".into());
-    vars.insert("location".into(), "Remote / Global".into());
-    vars.insert("contact_email".into(), "hello@example.com".into());
-    vars.insert("description".into(), "Professional portfolio, ATS resume, and case studies package".into());
-
-    Template {
-        kind: super::TemplateKind::Preset,
-        source_path: None,
-        name: "portfolio".into(),
-        description: "Professional portfolio & career package (ATS resume, case studies, press kit)".into(),
-        version: "1.0.0".into(),
-        variables: vars,
-        outputs: vec![
-            "ATS-Compliant Resume (PDF & Markdown)".into(),
-            "Deep-Dive Project Case Studies".into(),
-            "Media Press Kit & Headshots".into(),
-            "Interactive Portfolio Site Structure".into(),
-        ],
-        directories: vec![
-            "resume".into(),
-            "case_studies/project_01".into(),
-            "case_studies/project_02".into(),
-            "press_kit/headshots".into(),
-            "press_kit/bio".into(),
-            "credentials/certifications".into(),
-            "site".into(),
-        ],
-        files: vec![
-            super::TemplateFile {
-                path: "resume/resume.md".into(),
-                content: r#"# {{author}}
-**{{role_title}}**  
-Email: {{contact_email}} | Location: {{location}} | Portfolio: https://example.com
-
----
-
-## Executive Summary
-Results-driven builder with expertise in architecting resilient systems, leading cross-functional creative initiatives, and delivering production-grade software and media products.
-
-## Core Competencies
-- **Architecture & Engineering:** Rust, Modern Systems, Distributed Workflows, Performance Optimization.
-- **Creative & Technical Direction:** Scaffolding, Media Pipelines, Automated Auditing, User Interface Design.
-- **Leadership & Communication:** Technical Writing, Mentorship, Cross-Discipline Collaboration.
-
-## Professional Experience
-
-### Senior Lead Builder | Tech Company (2023 - Present)
-- Architected mission-critical tools reducing project onboarding latency by 90%.
-- Authored standard operating procedures adopted across 12 product teams.
-
-### Software Engineer | Studio (2020 - 2023)
-- Engineered scalable media processing pipelines serving over 100k daily active users.
-- Automated code health inspections increasing release stability.
-
-## Key Projects
-- **{{project_name}}:** Flagship open-source tooling suite with automated workspace lifecycle management.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "case_studies/project_01/case_study.md".into(),
-                content: r#"# Case Study: Building a High-Performance Workspace Manager
-
-## Problem
-Developers and digital creators frequently lost hours to fragmented folder structures, lost deliverables, and manual project setup.
-
-## Solution & Architecture
-Designed a zero-dependency Rust CLI and full-screen TUI application that enforces strict directory invariants and offers sub-second project seeding.
-
-## Quantitative Results
-- **Velocity:** Initialization time dropped from minutes to sub-second.
-- **Adoption:** Over 500 active workspace initializations in the first quarter.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "press_kit/bio/speaker_bio.md".into(),
-                content: r#"# Speaker & Press Bios: {{author}}
-
-### 50-Word Bio
-{{author}} is a {{role_title}} specializing in high-performance developer tooling and creative systems. Known for building resilient open-source tools that streamline digital craftsmanship.
-
-### 150-Word Bio
-{{author}} is a {{role_title}} based in {{location}}. With over a decade of experience bridging software engineering and creative media production, {{author}} designs tools that empower independent builders to produce polished deliverables without cognitive friction.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: ".gitignore".into(),
-                content: "resume/*.pdf\npress_kit/headshots/*.raw\n*.tmp\n.DS_Store\n".into(),
-                required: true,
-                executable: false,
-            },
-            super::TemplateFile {
-                path: "README.md".into(),
-                content: r#"# {{project_name}} - Career Portfolio & Resume Package
-
-**Professional:** {{author}}  
-**Role:** {{role_title}}  
-**Contact:** {{contact_email}}  
-
-## Expected Outputs
-- `resume/resume.md`: Clean ATS-optimized markdown resume ready to export to PDF.
-- `case_studies/`: In-depth problem/solution case studies demonstrating tangible business impact.
-- `press_kit/`: Speaker bios (short/long) and media assets for conference speaking and interviews.
-"#
-                .into(),
-                required: true,
-                executable: false,
-            },
+            "Comprehensive Game Design Document (GDD)".into(),
+            "Playable Gameplay Vertical Slice Prototype".into(),
+            "Cross-Platform Game Builds (Desktop & Web)".into(),
         ],
     }
 }

@@ -1,0 +1,65 @@
+.TH SEED 1 "October 2026" "seed 0.2.0" "User Commands"
+.SH NAME
+seed \- modern terminal workspace manager, project scaffolder, and health auditor
+.SH SYNOPSIS
+.B seed
+[\fISUBCOMMAND\fR] [\fIOPTIONS\fR]
+.SH DESCRIPTION
+.B seed
+is an interactive, keyboard-driven terminal user interface and command-line tool
+for organizing development workspaces, scaffolding repositories from built-in and
+custom templates, auditing project health, and maintaining file hygiene.
+.SH SUBCOMMANDS
+.TP
+.B tui
+Launch the full-screen interactive Terminal User Interface.
+.TP
+.B workspace \fR(alias: \fBinit-workspace\fR)
+Initialize the standard four-pillar workspace structure: personal/, clients/, resources/, and archive/.
+.TP
+.B new \fINAME\fR [\fIOPTIONS\fR]
+Scaffold a new project directory from a template.
+.TP
+.B check \fR(alias: \fBdoctor\fR) [\fIPATH\fR]
+Audit directory health, verify required files, detect junk files, and calculate health score.
+.TP
+.B sync \fR(alias: \fBmaintain\fR) [\fIPATH\fR]
+Repair missing baseline files and clean up temporary or junk files.
+.TP
+.B archive \fIPATH\fR
+Move a completed project into the yearly archive directory.
+.TP
+.B list
+List all available preset and manual templates.
+.TP
+.B tree [\fIPATH\fR]
+Visualize directory structure with file details and human-readable sizes.
+.TP
+.B completions \fISHELL\fR
+Generate shell auto-completion script for bash, zsh, fish, or powershell.
+.SH KEYBINDINGS (TUI)
+.TP
+.B S
+Cycle project sort order (Recently Modified, Alphabetical, Size, Health).
+.TP
+.B I / V
+Open the selected project in your preferred IDE/editor ($VISUAL, $EDITOR, code, nvim, etc.).
+.TP
+.B $
+Drop into an interactive subshell inside the selected project directory.
+.TP
+.B E
+Open the project README in the in-TUI Markdown editor and previewer.
+.TP
+.B D
+Run health doctor audit on the selected project.
+.TP
+.B P / T
+Display interactive directory tree viewer.
+.TP
+.B ? / F1
+Toggle shortcut cheat sheet.
+.SH AUTHOR
+Jaiganesh (jaigansa@users.noreply.github.com)
+.SH COPYRIGHT
+Copyright \(co 2026 Jaiganesh. Released under the MIT License.

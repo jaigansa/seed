@@ -1,0 +1,54 @@
+# Maintainer: Jaiganesh <jaigansa@users.noreply.github.com>
+pkgname=seed-cli
+pkgver=0.2.0
+pkgrel=1
+pkgdesc="Modern terminal workspace manager, project scaffolder, and health auditor"
+arch=('x86_64' 'aarch64')
+url="https://github.com/jaigansa/seed"
+license=('MIT')
+depends=('gcc-libs')
+makedepends=('cargo')
+conflicts=('seed')
+provides=('seed')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+    cd "seed-$pkgver"
+    cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+    cd "seed-$pkgver"
+    export RUSTUP_TOOLCHAIN=stable
+    export CARGO_TARGET_DIR=target
+    cargo build --frozen --release --all-targets
+}
+
+check() {
+    cd "seed-$pkgver"
+    cargo test --frozen --all-targets
+}
+
+package() {
+    cd "seed-$pkgver"
+
+    # Install binary
+    install -Dm755 target/release/seed "$pkgdir/usr/bin/seed"
+
+    # Install license
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+
+    # Install documentation
+    install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+
+    # Generate and install shell completions
+    install -d "$pkgdir/usr/share/bash-completion/completions"
+    "$pkgdir/usr/bin/seed" completions bash > "$pkgdir/usr/share/bash-completion/completions/seed"
+
+    install -d "$pkgdir/usr/share/zsh/site-functions"
+    "$pkgdir/usr/bin/seed" completions zsh > "$pkgdir/usr/share/zsh/site-functions/_seed"
+
+    install -d "$pkgdir/usr/share/fish/vendor_completions.d"
+    "$pkgdir/usr/bin/seed" completions fish > "$pkgdir/usr/share/fish/vendor_completions.d/seed.fish"
+}

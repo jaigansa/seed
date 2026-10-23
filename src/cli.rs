@@ -60,6 +60,10 @@ pub enum Commands {
     #[command(alias = "favorite")]
     Fav(FavArgs),
 
+    /// Pin or unpin a project to the top of the workspace dashboard
+    #[command(alias = "pin-project")]
+    Pin(PinArgs),
+
     /// Initialize template folders (user and/or local)
     #[command(alias = "templates-init")]
     InitTemplates(InitTemplatesArgs),
@@ -67,6 +71,17 @@ pub enum Commands {
     /// Configure or toggle icon display mode (nerdfont or ascii)
     #[command(alias = "icon")]
     Icons(IconsArgs),
+
+    /// Generate shell auto-completions script for bash, zsh, fish, or powershell
+    #[command(alias = "completion")]
+    Completions(CompletionsArgs),
+}
+
+#[derive(Args, Debug, Default)]
+pub struct CompletionsArgs {
+    /// Target shell to generate completions for (bash, zsh, fish, powershell)
+    #[arg(default_value = "bash")]
+    pub shell: String,
 }
 
 #[derive(Args, Debug, Default)]
@@ -101,8 +116,8 @@ pub struct NewArgs {
     #[arg(long)]
     pub client: Option<String>,
 
-    /// Template to use (e.g., yt-video, 3d-blender, cad-maker, vector-design, photo-editing, client-project, rust, python, etc.)
-    #[arg(short, long, default_value = "yt-video")]
+    /// Template to use (e.g., 3dmodel, cad, logo, video-edit, photo-edit, vector-artwork, webdesign, coding, etc.)
+    #[arg(short, long, default_value = "coding")]
     pub template: String,
 
     /// Create project in manual mode with a minimal blank starter structure
@@ -290,6 +305,20 @@ pub struct FavArgs {
     pub remove: bool,
 
     /// Clear all favorite templates
+    #[arg(long)]
+    pub clear: bool,
+}
+
+#[derive(Args, Debug, Default)]
+pub struct PinArgs {
+    /// Project name to pin or unpin (omit to list currently pinned projects)
+    pub project: Option<String>,
+
+    /// Unpin the specified project
+    #[arg(short, long)]
+    pub remove: bool,
+
+    /// Clear all pinned projects
     #[arg(long)]
     pub clear: bool,
 }

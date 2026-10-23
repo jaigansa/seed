@@ -21,6 +21,8 @@ pub struct AppConfig {
     pub custom_templates_dir: String,
     #[serde(default)]
     pub favorite_templates: Vec<String>,
+    #[serde(default)]
+    pub pinned_projects: Vec<String>,
     #[serde(default = "default_icon_mode")]
     pub icon_mode: String,
 }
@@ -63,9 +65,10 @@ impl Default for AppConfig {
             archive_dir: default_archive_dir(),
             default_author: author,
             default_license: "MIT".to_string(),
-            default_template: "rust".to_string(),
+            default_template: "coding".to_string(),
             custom_templates_dir: templates_dir,
             favorite_templates: Vec::new(),
+            pinned_projects: Vec::new(),
             icon_mode: default_icon_mode(),
         }
     }
@@ -91,6 +94,20 @@ impl AppConfig {
         }
     }
 
+    pub fn is_pinned_project(&self, name: &str) -> bool {
+        self.pinned_projects.iter().any(|p| p == name)
+    }
+
+    pub fn toggle_pinned_project(&mut self, name: &str) -> bool {
+        if let Some(pos) = self.pinned_projects.iter().position(|p| p == name) {
+            self.pinned_projects.remove(pos);
+            false
+        } else {
+            self.pinned_projects.push(name.to_string());
+            true
+        }
+    }
+
     pub fn use_nerd_font(&self) -> bool {
         self.icon_mode.eq_ignore_ascii_case("nerdfont") || self.icon_mode.eq_ignore_ascii_case("nerd-font")
     }
@@ -104,6 +121,13 @@ impl AppConfig {
         &self.icon_mode
     }
     pub fn root_path(&self) -> PathBuf {
+        if let Ok(home) = std::env::var("HOME") {
+            if self.workspace_root.starts_with("~/") {
+                return PathBuf::from(home).join(&self.workspace_root[2..]);
+            } else if self.workspace_root == "~" {
+                return PathBuf::from(home);
+            }
+        }
         PathBuf::from(&self.workspace_root)
     }
 
@@ -368,9 +392,10 @@ mod tests {
             archive_dir: "archive".into(),
             default_author: "Maker".into(),
             default_license: "MIT".into(),
-            default_template: "yt-video".into(),
+            default_template: "video-edit".into(),
             custom_templates_dir: tmp.path().join("templates").to_string_lossy().to_string(),
             favorite_templates: Vec::new(),
+            pinned_projects: Vec::new(),
             icon_mode: "ascii".into(),
         };
 
@@ -414,6 +439,22 @@ mod tests {
         assert!(!removed);
         assert!(!cfg.is_favorite("rust"));
         assert_eq!(cfg.favorite_templates, vec!["python".to_string()]);
+    }
+
+    #[test]
+    fn test_pinned_projects_toggle() {
+        let mut cfg = AppConfig::default();
+        assert!(!cfg.is_pinned_project("my-app"));
+
+        let added = cfg.toggle_pinned_project("my-app");
+        assert!(added);
+        assert!(cfg.is_pinned_project("my-app"));
+        assert_eq!(cfg.pinned_projects, vec!["my-app".to_string()]);
+
+        let removed = cfg.toggle_pinned_project("my-app");
+        assert!(!removed);
+        assert!(!cfg.is_pinned_project("my-app"));
+        assert!(cfg.pinned_projects.is_empty());
     }
 
     #[test]

@@ -1,0 +1,4 @@
+target/release/seed usr/bin/
+completions/seed.bash usr/share/bash-completion/completions/
+completions/_seed usr/share/zsh/vendor-completions/
+completions/seed.fish usr/share/fish/vendor_completions.d/

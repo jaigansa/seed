@@ -1,5 +1,6 @@
 mod capture;
 mod cli;
+mod completions;
 mod config;
 mod creator;
 mod icons;
@@ -69,7 +70,7 @@ fn main() -> Result<()> {
 
         Commands::New(args) => {
             let cfg = config::load_config();
-            let template_name = if args.manual && args.template == "yt-video" {
+            let template_name = if args.manual && (args.template == "coding" || args.template == "yt-video" || args.template == "manual") {
                 "manual"
             } else {
                 &args.template
@@ -496,6 +497,59 @@ fn main() -> Result<()> {
             }
         }
 
+        Commands::Pin(args) => {
+            let mut cfg = config::load_config();
+
+            if args.clear {
+                cfg.pinned_projects.clear();
+                config::save_config(&cfg)?;
+                println!("\n{} Cleared all pinned projects.\n", "[PIN]".cyan().bold());
+            } else if let Some(ref name) = args.project {
+                if args.remove {
+                    if cfg.is_pinned_project(name) {
+                        cfg.toggle_pinned_project(name);
+                        config::save_config(&cfg)?;
+                        println!(
+                            "\n{} Unpinned project '{}'.\n",
+                            "[PIN]".yellow().bold(),
+                            name
+                        );
+                    } else {
+                        println!("\nProject '{}' is not currently pinned.\n", name);
+                    }
+                } else {
+                    let now_pinned = cfg.toggle_pinned_project(name);
+                    config::save_config(&cfg)?;
+                    if now_pinned {
+                        println!(
+                            "\n{} Pinned project '{}' to the top of your workspace dashboard!\n",
+                            "[PIN]".green().bold(),
+                            name.bold()
+                        );
+                    } else {
+                        println!(
+                            "\n{} Unpinned project '{}'.\n",
+                            "[PIN]".yellow().bold(),
+                            name
+                        );
+                    }
+                }
+            } else {
+                if cfg.pinned_projects.is_empty() {
+                    println!("\nNo projects pinned to top yet.");
+                    println!("To pin a project to the top of the dashboard:");
+                    println!("  TUI: Press [F] on any project in the dashboard");
+                    println!("  CLI: seed pin <project-name>\n");
+                } else {
+                    println!("\n{}", "Pinned Workspace Projects (always displayed on top):".bold());
+                    for (i, p) in cfg.pinned_projects.iter().enumerate() {
+                        println!("  {}. {:<20} {}", i + 1, p.cyan().bold(), "★ [PINNED]".yellow().bold());
+                    }
+                    println!("\nTip: Use 'seed pin <name>' to toggle or 'seed pin --clear' to reset.\n");
+                }
+            }
+        }
+
         Commands::Icons(args) => {
             let mut cfg = config::load_config();
             if let Some(ref mode) = args.mode {
@@ -520,10 +574,10 @@ fn main() -> Result<()> {
                 println!("\n{}", "Seed Icon Configuration:".bold().underline());
                 println!("  Current mode: {} (Nerd Font: {})", cfg.icon_mode.cyan().bold(), if use_nf { "ACTIVE".green().bold() } else { "DISABLED".yellow() });
                 println!("\n  Preview:");
-                println!("    Folder:   {}{}", crate::icons::folder_icon(use_nf), "my-project/");
-                println!("    Rust:     {}{}", crate::icons::file_icon(Path::new("main.rs"), use_nf), "main.rs");
-                println!("    Python:   {}{}", crate::icons::file_icon(Path::new("app.py"), use_nf), "app.py");
-                println!("    Favorite: {}{}", crate::icons::fav_badge(true, use_nf), "pinned template");
+                println!("    Folder:   {}my-project/", crate::icons::folder_icon(use_nf));
+                println!("    Rust:     {}main.rs", crate::icons::file_icon(Path::new("main.rs"), use_nf));
+                println!("    Python:   {}app.py", crate::icons::file_icon(Path::new("app.py"), use_nf));
+                println!("    Favorite: {}pinned template", crate::icons::fav_badge(true, use_nf));
                 println!("\n  To switch mode:");
                 println!("    seed icons nerdfont   (Enable Nerd Font glyphs)");
                 println!("    seed icons ascii      (Use standard ASCII)");
@@ -531,6 +585,18 @@ fn main() -> Result<()> {
                 println!("\n  Prerequisite for Nerd Font:");
                 println!("    Ensure your terminal font is set to a Nerd Font (e.g. JetBrainsMono NF, FiraCode NF).");
                 println!();
+            }
+        }
+
+        Commands::Completions(args) => {
+            if let Some(script) = completions::generate_completions(&args.shell) {
+                print!("{}", script);
+            } else {
+                eprintln!(
+                    "Unsupported shell '{}'. Supported shells: bash, zsh, fish, powershell",
+                    args.shell
+                );
+                std::process::exit(1);
             }
         }
     }
